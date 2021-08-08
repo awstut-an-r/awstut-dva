@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    Default: dva-03-001
+    
+  SignupPageFunctionName:
+    Type: String
+    Default: SignupPageFunction
+    
+  VerifyPageFunctionName:
+    Type: String
+    Default: VerifyPageFunction
+    
+  SigninPageFunctionName:
+    Type: String
+    Default: SigninPageFunction
+    
+    
+Resources:
+  SignupPageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USERPOOL_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolId
+          COGNITO_USERPOOL_CLIENT_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolClientId
+          REGION: !Ref AWS::Region
+      Code:
+        S3Bucket:
+          Fn::ImportValue: !Sub ${Prefix}-BucketName
+        S3Key: !Sub ${SignupPageFunctionName}.zip
+      FunctionName: !Sub ${Prefix}-${SignupPageFunctionName}
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt FunctionRole.Arn
+      
+  VerifyPageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USERPOOL_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolId
+          COGNITO_USERPOOL_CLIENT_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolClientId
+          REGION: !Ref AWS::Region
+      Code:
+        S3Bucket:
+          Fn::ImportValue: !Sub ${Prefix}-BucketName
+        S3Key: !Sub ${VerifyPageFunctionName}.zip
+      FunctionName: !Sub ${Prefix}-${VerifyPageFunctionName}
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt FunctionRole.Arn
+      
+  SigninPageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Environment:
+        Variables:
+          COGNITO_USERPOOL_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolId
+          COGNITO_USERPOOL_CLIENT_ID:
+            Fn::ImportValue: !Sub ${Prefix}-UserPoolClientId
+          COGNITO_IDENTITY_POOL_ID:
+            Fn::ImportValue: !Sub ${Prefix}-IdentityPoolId
+          REGION: !Ref AWS::Region
+      Code:
+        S3Bucket:
+          Fn::ImportValue: !Sub ${Prefix}-BucketName
+        S3Key: !Sub ${SigninPageFunctionName}.zip
+      FunctionName: !Sub ${Prefix}-${SigninPageFunctionName}
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt FunctionRole.Arn
+    
+    
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+
+
+Outputs:
+  SignupPageFunctionName:
+    Value: !Sub ${Prefix}-${SignupPageFunctionName}
+    Export:
+      Name: !Sub ${Prefix}-SignupPageFunctionName
+      
+  SignupPageFunctionArn:
+    Value: !GetAtt SignupPageFunction.Arn
+    Export:
+      Name: !Sub ${Prefix}-SignupPageFunctionArn
+      
+  VerifyPageFunctionName:
+    Value: !Sub ${Prefix}-${VerifyPageFunctionName}
+    Export:
+      Name: !Sub ${Prefix}-VerifyPageFunctionName
+      
+  VerifyPageFunctionArn:
+    Value:  !GetAtt VerifyPageFunction.Arn
+    Export:
+      Name: !Sub ${Prefix}-VerifyPageFunctionArn
+      
+  SigninPageFunctionName:
+    Value: !Sub ${Prefix}-${SigninPageFunctionName}
+    Export:
+      Name: !Sub ${Prefix}-SigninPageFunctionName
+      
+  SigninPageFunctionArn:
+    Value:  !GetAtt SigninPageFunction.Arn
+    Export:
+      Name: !Sub ${Prefix}-SigninPageFunctionArn
