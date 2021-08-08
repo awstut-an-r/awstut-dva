@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    Default: dva-03-001
+    
+
+Resources:
+  HttpApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: HttpApiLogGroup
+      RetentionInDays: 1
+      
+      
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub ${Prefix}-HttpApi
+      Description: HttpApi.
+      ProtocolType: HTTP
+      
+  ProdStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      AutoDeploy: true
+      StageName: prod
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: true
+        DataTraceEnabled: false
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 10
+      AccessLogSettings:
+        DestinationArn: !GetAtt HttpApiLogGroup.Arn
+        Format: >-
+          {"requestId":"$context.requestId", "ip": "$context.identity.sourceIp",
+          "caller":"$context.identity.caller",
+          "user":"$context.identity.user","requestTime":"$context.requestTime",
+          routeKey":"$context.routeKey","status":"$context.status"}
+          
+  SignupPageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ConnectionType: INTERNET
+      IntegrationMethod: POST
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - Region: !Ref AWS::Region
+          FunctionArn:
+            Fn::ImportValue: !Sub ${Prefix}-SignupPageFunctionArn
+      PayloadFormatVersion: '2.0'
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      
+  SignupPageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /signup'
+      AuthorizationType: NONE
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref SignupPageIntegration
+          
+  SignupPageFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::ImportValue: !Sub ${Prefix}-SignupPageFunctionName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      
+  VerifyPageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ConnectionType: INTERNET
+      IntegrationMethod: POST
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - Region: !Ref AWS::Region
+          FunctionArn:
+            Fn::ImportValue: !Sub ${Prefix}-VerifyPageFunctionArn
+      PayloadFormatVersion: '2.0'
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      
+  VerifyPageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /verify'
+      AuthorizationType: NONE
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref VerifyPageIntegration
+          
+  VerifyPageFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::ImportValue: !Sub ${Prefix}-VerifyPageFunctionName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      
+  SigninPageIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ConnectionType: INTERNET
+      IntegrationMethod: POST
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${FunctionArn}/invocations
+        - Region: !Ref AWS::Region
+          FunctionArn:
+            Fn::ImportValue: !Sub ${Prefix}-SigninPageFunctionArn
+      PayloadFormatVersion: '2.0'
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      
+  SigninPageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'ANY /signin'
+      AuthorizationType: NONE
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref SigninPageIntegration
+          
+  SigninPageFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::ImportValue: !Sub ${Prefix}-SigninPageFunctionName
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
