@@ -136,8 +136,6 @@ def lambda_handler(event, context):
         password = params['password'][0]
         
         idp_client = boto3.client('cognito-idp', region_name=REGION)
-        identity_client = boto3.client('cognito-identity', region_name=REGION)
-        credentials = None
         
         username = ''
         age = ''
