@@ -135,16 +135,16 @@ def lambda_handler(event, context):
         email = params['email'][0]
         password = params['password'][0]
         
-        idp_client = boto3.client('cognito-idp', region_name=REGION)
+        client = boto3.client('cognito-idp', region_name=REGION)
         
         username = ''
         age = ''
         
         try:
-            user_response = idp_client.admin_get_user(
+            user_response = client.admin_get_user(
                 UserPoolId=os.environ['COGNITO_USERPOOL_ID'],
                 Username=email)
-            #pprint.pprint(user_response)
+
             username = user_response['Username']
             for attributes in user_response['UserAttributes']:
                 if attributes['Name'] == 'custom:age':
