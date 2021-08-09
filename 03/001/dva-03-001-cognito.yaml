@@ -60,7 +60,7 @@ Resources:
       IdentityPoolId: !Ref IdentityPool
       Roles:
         authenticated: !GetAtt IdentityPoolAuthenticatedRole.Arn
-        
+
   IdentityPoolAuthenticatedRole:
     Type: AWS::IAM::Role
     Properties:
@@ -83,10 +83,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - "mobileanalytics:PutEvents"
                   - "cognito-sync:*"
-                  - "cognito-identity:*"
-                Resource: "*"
+                Resource: !Sub
+                  - "arn:aws:cognito-sync:${Region}:${AccountId}:identitypool/${CognitoAud}/identity/${CognitoSub}/*"
+                  - CognitoAud: ${cognito-identity.amazonaws.com:aud}
+                    CognitoSub: ${cognito-identity.amazonaws.com:sub}
+                    Region: !Ref AWS::Region
+                    AccountId: !Ref AWS::AccountId
           
           
 Outputs:
