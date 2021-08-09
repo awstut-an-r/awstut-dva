@@ -141,10 +141,20 @@ def lambda_handler(event, context):
         age = ''
         
         try:
+            auth_response = client.admin_initiate_auth(
+                UserPoolId=os.environ['COGNITO_USERPOOL_ID'],
+                ClientId=os.environ['COGNITO_USERPOOL_CLIENT_ID'],
+                AuthFlow='ADMIN_NO_SRP_AUTH',
+                AuthParameters={
+                    'USERNAME': email,
+                    'PASSWORD': password
+                })
+            #pprint.pprint(auth_response)
+            
             user_response = client.admin_get_user(
                 UserPoolId=os.environ['COGNITO_USERPOOL_ID'],
                 Username=email)
-
+            #pprint.pprint(user_response)
             username = user_response['Username']
             for attributes in user_response['UserAttributes']:
                 if attributes['Name'] == 'custom:age':
