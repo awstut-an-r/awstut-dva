@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    Default: dva-02-001
+    
+    
+Resources:
+  CloudWatchEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${Prefix}-EndpointSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.monitoring
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${Prefix}-PrivateSubnet
+      VpcEndpointType: Interface
+      VpcId:
+        Fn::ImportValue: !Sub ${Prefix}-VPC
