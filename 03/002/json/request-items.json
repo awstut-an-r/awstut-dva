@@ -1,0 +1,319 @@
+{
+  "dva-03-002-table": [
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "aaa"
+          },
+          "service": {
+            "S": "EC2"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:00:00"
+          },
+          "rating": {
+            "N": "5"
+          },
+          "comment": {
+            "S": "Stylish!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "aaa"
+          },
+          "service": {
+            "S": "ECS"
+          },
+          "datetime": {
+            "S": "2021-01-02 01:00:00"
+          },
+          "rating": {
+            "N": "4"
+          },
+          "comment": {
+            "S": "Absolute!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "aaa"
+          },
+          "service": {
+            "S": "S3"
+          },
+          "datetime": {
+            "S": "2021-01-03 01:00:00"
+          },
+          "rating": {
+            "N": "3"
+          },
+          "comment": {
+            "S": "Bravo!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "aaa"
+          },
+          "service": {
+            "S": "RDS"
+          },
+          "datetime": {
+            "S": "2021-01-04 01:00:00"
+          },
+          "rating": {
+            "N": "2"
+          },
+          "comment": {
+            "S": "Cool!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "aaa"
+          },
+          "service": {
+            "S": "IAM"
+          },
+          "datetime": {
+            "S": "2021-01-05 01:00:00"
+          },
+          "rating": {
+            "N": "1"
+          },
+          "comment": {
+            "S": "Dull"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "bbb"
+          },
+          "service": {
+            "S": "EC2"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:01:00"
+          },
+          "rating": {
+            "N": "1"
+          },
+          "comment": {
+            "S": "DON'T WORRY"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "bbb"
+          },
+          "service": {
+            "S": "ECS"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:02:00"
+          },
+          "rating": {
+            "N": "2"
+          },
+          "comment": {
+            "S": "COME ON!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "bbb"
+          },
+          "service": {
+            "S": "S3"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:03:00"
+          },
+          "rating": {
+            "N": "3"
+          },
+          "comment": {
+            "S": "BINGO!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "bbb"
+          },
+          "service": {
+            "S": "RDS"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:04:00"
+          },
+          "rating": {
+            "N": "4"
+          },
+          "comment": {
+            "S": "ARE YOU READY?"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "bbb"
+          },
+          "service": {
+            "S": "IAM"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:05:00"
+          },
+          "rating": {
+            "N": "5"
+          },
+          "comment": {
+            "S": "SHOW TIME!!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "ccc"
+          },
+          "service": {
+            "S": "EC2"
+          },
+          "datetime": {
+            "S": "2021-01-01 01:00:01"
+          },
+          "rating": {
+            "N": "2"
+          },
+          "comment": {
+            "S": "Dope!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "ccc"
+          },
+          "service": {
+            "S": "ECS"
+          },
+          "datetime": {
+            "S": "2021-01-01 02:00:01"
+          },
+          "rating": {
+            "N": "2"
+          },
+          "comment": {
+            "S": "Crazy!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "ccc"
+          },
+          "service": {
+            "S": "S3"
+          },
+          "datetime": {
+            "S": "2021-01-01 03:00:01"
+          },
+          "rating": {
+            "N": "3"
+          },
+          "comment": {
+            "S": "Blast!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "ccc"
+          },
+          "service": {
+            "S": "RDS"
+          },
+          "datetime": {
+            "S": "2021-01-01 04:00:01"
+          },
+          "rating": {
+            "N": "4"
+          },
+          "comment": {
+            "S": "Alright!"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "user": {
+            "S": "ccc"
+          },
+          "service": {
+            "S": "IAM"
+          },
+          "datetime": {
+            "S": "2021-01-01 05:00:01"
+          },
+          "rating": {
+            "N": "4"
+          },
+          "comment": {
+            "S": "Sweet!"
+          }
+        }
+      }
+    }
+  ]
+}
