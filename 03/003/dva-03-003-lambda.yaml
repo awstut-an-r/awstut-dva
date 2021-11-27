@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    
+
+Resources:
+  AuthenticatedFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      #Environment:
+      #  Variables:
+      #    KINESIS_STREAM_NAME:
+      #      Fn::ImportValue: !Sub ${Prefix}-KinesisDataStreamName
+      FunctionName: !Sub "${Prefix}-AuthenticatedFunction"
+      Runtime: python3.9
+      Role: !GetAtt LambdaRole.Arn
+      #Timeout: 60
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          import datetime
+          
+          def lambda_handler(event, context):
+            return str(datetime.date.today())
+            
+            
+  UnauthenticatedFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${Prefix}-UnauthenticatedFunction"
+      Runtime: python3.9
+      Role: !GetAtt LambdaRole.Arn
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          import datetime
+          
+          def lambda_handler(event, context):
+            return str(datetime.datetime.now().time())
+            
+            
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      #Policies:
+      #  - PolicyName: PutRecordIntoKinesisDataStream
+      #    PolicyDocument:
+      #      Version: 2012-10-17
+      #      Statement:
+      #        - Effect: Allow
+      #          Action:
+      #            - kinesis:PutRecord
+      #          Resource:
+      #            - Fn::ImportValue: !Sub ${Prefix}-KinesisDataStreamArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+        
+        
+Outputs:
+  AuthenticatedFunctionArn:
+    Value: !GetAtt AuthenticatedFunction.Arn
+    
+  UnauthenticatedFunctionArn:
+    Value: !GetAtt UnauthenticatedFunction.Arn

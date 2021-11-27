@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1033.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5.2.3/dist/amazon-cognito-identity.min.js"></script>
+  </head>
+  <body>
+    <h1>signin.html</h1>
+    <p id="name"></p>
+    <p id="parameter"></p>
+    
+    <script type="text/javascript">
+      // Called when an identity provider has a token for a logged in user
+      function userLoggedIn(providerName, token) {
+          creds.params.Logins = creds.params.Logins || {};
+          creds.params.Logins[providerName] = token;
+      
+          // Expire credentials to refresh them on the next request
+          creds.expired = true;
+      }
+      
+      function getUserAttrFromIdToken(idToken, attrName) {
+        var tokens = idToken.split('.');
+        var tokensDecoded = JSON.parse(atob(tokens[1]));
+        return tokensDecoded[attrName];
+      }
+      
+      var prefix = 'dva-03-003';
+      var region = 'ap-northeast-1';
+      var userPoolId = 'ap-northeast-1_5GnPfxSKT';
+      var identityPoolId = 'ap-northeast-1:5cb2698a-5e86-44fd-9346-ed83164c2c60';
+      var providerName = `cognito-idp.${region}.amazonaws.com/${userPoolId}`;
+      
+      var authenticatedFunctionName = `${prefix}-AuthenticatedFunction`;
+      var unauthenticatedFunctionName = `${prefix}-UnauthenticatedFunction`;
+      var lambdaParams = {
+        // default function name.
+        FunctionName: unauthenticatedFunctionName,
+        //InvocationType: 'RequestResponse',
+        //ClientContext: ''
+      };
+      // default username.
+      var userName = 'guest';
+      
+      AWS.config.region = region;
+      
+      // set the default config object
+      var creds = new AWS.CognitoIdentityCredentials({
+          IdentityPoolId: identityPoolId
+      });
+      AWS.config.credentials = creds;
+      //console.log(AWS.config.credentials);
+      
+      var urlParams = new URLSearchParams(location.hash.slice(1));
+      var idToken = urlParams.get("id_token");
+      if (idToken) {
+        userLoggedIn(providerName, idToken);
+        userName = getUserAttrFromIdToken(idToken, 'name');
+        lambdaParams.FunctionName = authenticatedFunctionName;
+      }
+      
+      AWS.config.credentials.get(function(err) {
+        if (err) console.log(err, err.stack);
+        else {
+          var lambda = new AWS.Lambda();
+          //lambdaParams.FunctionName = unauthenticatedFunctionName;
+          lambda.invoke(lambdaParams, function(err, data) {
+            if (err) console.log(err, err.stack);
+            else {
+              //console.log(data);
+              document.getElementById('name').innerText = `Name: ${userName}`;
+              document.getElementById('parameter').innerText = `Lambda Function Result: ${data.Payload}`;
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
