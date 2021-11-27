@@ -15,12 +15,6 @@ Parameters:
     
   SignoutHtml:
     Type: String
-    
-  #AuthenticatedParameter:
-  #  Type: String
-  #  
-  #UnauthenticatedParameter:
-  #  Type: String
   
   AuthenticatedFunctionArn:
     Type: String
@@ -115,10 +109,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- ssm:GetParameter
                   - lambda:InvokeFunction
                 Resource:
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AuthenticatedParameter}"
                   - !Ref AuthenticatedFunctionArn
 
   IdentityPoolUnauthenticatedRole:
@@ -143,11 +135,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- ssm:GetParameter
-                  #- ssm:*
-                  #- "*"
                   - lambda:InvokeFunction
                 Resource:
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${UnauthenticatedParameter}"
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
                   - !Ref UnauthenticatedFunctionArn
