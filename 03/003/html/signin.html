@@ -26,8 +26,8 @@
       
       var prefix = 'dva-03-003';
       var region = 'ap-northeast-1';
-      var userPoolId = 'ap-northeast-1_5GnPfxSKT';
-      var identityPoolId = 'ap-northeast-1:5cb2698a-5e86-44fd-9346-ed83164c2c60';
+      var userPoolId = '[user-pool-id]';
+      var identityPoolId = '[id-pool-id]';
       var providerName = `cognito-idp.${region}.amazonaws.com/${userPoolId}`;
       
       var authenticatedFunctionName = `${prefix}-AuthenticatedFunction`;
@@ -35,20 +35,15 @@
       var lambdaParams = {
         // default function name.
         FunctionName: unauthenticatedFunctionName,
-        //InvocationType: 'RequestResponse',
-        //ClientContext: ''
       };
       // default username.
       var userName = 'guest';
       
       AWS.config.region = region;
-      
-      // set the default config object
       var creds = new AWS.CognitoIdentityCredentials({
           IdentityPoolId: identityPoolId
       });
       AWS.config.credentials = creds;
-      //console.log(AWS.config.credentials);
       
       var urlParams = new URLSearchParams(location.hash.slice(1));
       var idToken = urlParams.get("id_token");
@@ -62,11 +57,9 @@
         if (err) console.log(err, err.stack);
         else {
           var lambda = new AWS.Lambda();
-          //lambdaParams.FunctionName = unauthenticatedFunctionName;
           lambda.invoke(lambdaParams, function(err, data) {
             if (err) console.log(err, err.stack);
             else {
-              //console.log(data);
               document.getElementById('name').innerText = `Name: ${userName}`;
               document.getElementById('parameter').innerText = `Lambda Function Result: ${data.Payload}`;
             }
