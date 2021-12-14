@@ -24,7 +24,6 @@
       var identityPoolId = 'ap-northeast-1:800ca6c3-73fb-4c6f-ae5e-e0a91e7fb994'
       
       try {
-        // get id token.
         var params = new URLSearchParams(location.hash.slice(1));
         var idToken = params.get("id_token");
         
@@ -35,29 +34,11 @@
             [`cognito-idp.${region}.amazonaws.com/${userPoolId}`]: idToken
           }
         });
-        //console.log(AWS.config.credentials);
         
         var tokens = idToken.split('.');
         var tokensDecoded = JSON.parse(atob(tokens[1]));
-        //console.log(tokensDecoded);
         var name = tokensDecoded.name;
-        //console.log(name);
         document.getElementById('name').innerText = `Name: ${name}`;
-        
-        
-        //var ssmParams = {
-        //  Name: `${prefix}-authenticated`
-        //}
-        //var ssm = new AWS.SSM();
-        //ssm.getParameter(ssmParams, function(err, data) {
-        //  if (err) console.log(err, err.stack);
-        //  else {
-        //    //console.log(data):
-        //    var storedParameter = data.Parameter.Value;
-        //    //console.log(storedParameter);
-        //    document.getElementById('parameter').innerText = `SSM Parameter Store: ${storedParameter}`;
-        //  }
-        //});
         
         
         var setBackgroundColorToCognitoSync = function(color) {
@@ -93,14 +74,12 @@
         };
         
         document.getElementById('button-set').addEventListener('click', function(event) {
-          //console.log('hogehogehoge');
           var color = document.getElementById('background-color').value;
           console.log(color);
           setBackgroundColorToCognitoSync(color);
         });
         
         document.getElementById('button-get').addEventListener('click', function(event) {
-          //console.log('fugafugafuga');
           getBackgroundColorFromCognitoSync();
         });
         
