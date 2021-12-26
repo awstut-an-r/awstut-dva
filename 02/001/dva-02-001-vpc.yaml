@@ -1,8 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
-  #AvailabilityZone:
-  #  Type: String
-    
   CidrIp:
     Type: String
     
@@ -29,18 +26,12 @@ Resources:
     Properties:
       CidrBlock: !Ref CidrIp
       VpcId: !Ref VPC
-      #AvailabilityZone: !Sub ${AWS::Region}${AvailabilityZone}
       
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub "${Prefix}-InstanceSecurityGroup"
       GroupDescription: Deny All.
-      #SecurityGroupIngress:
-      #  - IpProtocol: icmp
-      #    FromPort: -1
-      #    ToPort: -1
-      #    CidrIp: !Ref CidrIp
       VpcId: !Ref VPC
       
   EndpointSecurityGroup:
