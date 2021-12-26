@@ -1,32 +1,34 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  Prefix:
-    Type: String
-    Default: dva-02-001
-    
-  LatestAmiId:
+  ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
     
+  InstanceSecurityGroup:
+    Type: String
+
   InstanceType:
     Type: String
-    Default: t3.nano
-
+    
+  Prefix:
+    Type: String
+    
+  PrivateSubnet:
+    Type: String
+    
 
 Resources:
-  Instance1:
+  Instance:
     Type: AWS::EC2::Instance
     Properties:
       IamInstanceProfile: !Ref InstanceProfile
-      ImageId: !Ref LatestAmiId
+      ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
       NetworkInterfaces:
         - DeviceIndex: 0
-          SubnetId:
-            Fn::ImportValue: !Sub ${Prefix}-PrivateSubnet
+          SubnetId: !Ref PrivateSubnet
           GroupSet:
-            - Fn::ImportValue: !Sub ${Prefix}-InstanceSecurityGroup
+            - !Ref InstanceSecurityGroup
             
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -34,7 +36,7 @@ Resources:
       Path: /
       Roles:
         - !Ref InstanceRole
-
+  
   InstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -46,6 +48,7 @@ Resources:
             Principal:
               Service:
                 - ec2.amazonaws.com
+                - ssm.amazonaws.com
       Policies:
         - PolicyName: PermitPutMetricData
           PolicyDocument:
