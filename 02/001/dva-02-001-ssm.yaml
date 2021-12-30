@@ -30,6 +30,7 @@ Resources:
           - "total_conn=$(netstat -an | grep $port | wc -l)"
           - "instance_id=$(ec2-metadata -i | cut -d ' ' -f 2)"
           - "aws cloudwatch put-metric-data --namespace 'totalconn' --metric-name $port --dimensions Instance=$instance_id --value $total_conn --region ap-northeast-1"
+          - "echo `date` instance_id=$instance_id, port=$port, total_conn=$total_conn"
       ScheduleExpression: cron(0/30 * * * ? *)
       #ScheduleExpression: rate(30 minutes)
       Targets:
