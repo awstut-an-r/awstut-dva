@@ -23,7 +23,6 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-vpc.yaml"
       Parameters:
-        #AvailabilityZone: a
         CidrIp: 10.0.1.0/24
         HTTPSPort: 443
         Prefix: !Ref Prefix
