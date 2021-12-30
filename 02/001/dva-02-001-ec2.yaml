@@ -16,6 +16,9 @@ Parameters:
   PrivateSubnet:
     Type: String
     
+  SSMLogBucket:
+    Type: String
+    
 
 Resources:
   Instance:
@@ -48,7 +51,7 @@ Resources:
             Principal:
               Service:
                 - ec2.amazonaws.com
-                - ssm.amazonaws.com
+                #- ssm.amazonaws.com
       Policies:
         - PolicyName: PermitPutMetricData
           PolicyDocument:
@@ -58,5 +61,23 @@ Resources:
                 Action:
                   - cloudwatch:PutMetricData
                 Resource: "*"
+        - PolicyName: DeliverLogPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${SSMLogBucket}"
+                  - !Sub "arn:aws:s3:::${SSMLogBucket}/*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+
+Outputs:
+  Instance:
+    Value: !Ref Instance

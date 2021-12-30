@@ -1,5 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
+  #AvailabilityZone:
+  #  Type: String
+    
   CidrIp:
     Type: String
     
@@ -26,12 +29,29 @@ Resources:
     Properties:
       CidrBlock: !Ref CidrIp
       VpcId: !Ref VPC
+      #AvailabilityZone: !Sub ${AWS::Region}${AvailabilityZone}
+      
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
       
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub "${Prefix}-InstanceSecurityGroup"
       GroupDescription: Deny All.
+      #SecurityGroupIngress:
+      #  - IpProtocol: icmp
+      #    FromPort: -1
+      #    ToPort: -1
+      #    CidrIp: !Ref CidrIp
       VpcId: !Ref VPC
       
   EndpointSecurityGroup:
@@ -50,6 +70,9 @@ Resources:
 Outputs:
   VPC:
     Value: !Ref VPC
+      
+  PrivateRouteTable:
+    Value: !Ref PrivateRouteTable
       
   PrivateSubnet:
     Value: !Ref PrivateSubnet

@@ -7,7 +7,13 @@ Parameters:
   Prefix:
     Type: String
     
+  PrivateRouteTable:
+    Type: String
+    
   PrivateSubnet:
+    Type: String
+    
+  SSMLogBucket:
     Type: String
     
   VPC:
@@ -15,6 +21,24 @@ Parameters:
     
 
 Resources:
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub "arn:aws:s3:::${SSMLogBucket}"
+              - !Sub "arn:aws:s3:::${SSMLogBucket}/*"
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VPC
+      
   SSMEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:

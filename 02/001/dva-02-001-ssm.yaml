@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Instance:
+    Type: String
+    
+  Prefix:
+    Type: String
+    
+  SSMLogBucket:
+    Type: String
+    
+  WaitForSuccessTimeoutSeconds:
+    Type: Number
+    
+
+Resources:
+  RunShellScriptAssociation:
+    Type: AWS::SSM::Association
+    Properties:
+      AssociationName: !Sub ${Prefix}-run-shellscript-association
+      Name: AWS-RunShellScript
+      OutputLocation:
+        S3Location:
+          OutputS3BucketName: !Ref SSMLogBucket
+          OutputS3KeyPrefix: shellscript-association-log
+      Parameters:
+        commands:
+          - "port=443"
+          - "total_conn=$(netstat -an | grep $port | wc -l)"
+          - "instance_id=$(ec2-metadata -i | cut -d ' ' -f 2)"
+          - "aws cloudwatch put-metric-data --namespace 'totalconn' --metric-name $port --dimensions Instance=$instance_id --value $total_conn --region ap-northeast-1"
+      ScheduleExpression: cron(0/30 * * * ? *)
+      #ScheduleExpression: rate(30 minutes)
+      Targets:
+        - Key: InstanceIds
+          Values:
+            - !Ref Instance
+      WaitForSuccessTimeoutSeconds: !Ref WaitForSuccessTimeoutSeconds
