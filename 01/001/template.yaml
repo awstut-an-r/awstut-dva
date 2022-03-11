@@ -57,17 +57,17 @@ Resources:
                 Resource: "*"
               - Effect: Allow
                 Action:
-                  - dynamodb:BatchGet*
-                  - dynamodb:DescribeStream
-                  - dynamodb:DescribeTable
-                  - dynamodb:Get*
-                  - dynamodb:Query
+                  #- dynamodb:BatchGet*
+                  #- dynamodb:DescribeStream
+                  #- dynamodb:DescribeTable
+                  #- dynamodb:Get*
+                  #- dynamodb:Query
                   - dynamodb:Scan
-                  - dynamodb:BatchWrite*
-                  - dynamodb:CreateTable
-                  - dynamodb:Delete*
-                  - dynamodb:Update*
-                  - dynamodb:PutItem
+                  #- dynamodb:BatchWrite*
+                  #- dynamodb:CreateTable
+                  #- dynamodb:Delete*
+                  #- dynamodb:Update*
+                  #- dynamodb:PutItem
                 Resource: !GetAtt Table.Arn
             
   Table:
@@ -80,26 +80,14 @@ Resources:
       TableName: !Sub ${Prefix}-Table
       
       
-  SampleTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: dt
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: dt
-          KeyType: HASH
-      TableName: !Sub ${Prefix}-SampleTable
-      
-      
-Outputs:
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/hello"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  #SampleTable:
+  #  Type: AWS::DynamoDB::Table
+  #  Properties:
+  #    AttributeDefinitions:
+  #      - AttributeName: dt
+  #        AttributeType: S
+  #    BillingMode: PAY_PER_REQUEST
+  #    KeySchema:
+  #      - AttributeName: dt
+  #        KeyType: HASH
+  #    TableName: !Sub ${Prefix}-SampleTable
