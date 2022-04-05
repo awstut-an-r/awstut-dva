@@ -34,19 +34,14 @@ Resources:
     Properties:
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
-        #- code
         - implicit
       AllowedOAuthScopes:
-        #- aws.cognito.signin.user.admin
-        #- email
         - openid
-        #- phone
         - profile
       CallbackURLs:
         - !Sub "${BucketWesSiteEndpointUrl}/${SigninHtml}"
       ClientName: !Sub "${Prefix}-UserPoolClient"
       ExplicitAuthFlows:
-        #- ALLOW_CUSTOM_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
       LogoutURLs:
