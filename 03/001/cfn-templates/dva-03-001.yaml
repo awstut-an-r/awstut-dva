@@ -38,7 +38,5 @@ Resources:
       Parameters:
         BucketWesSiteEndpointUrl: !GetAtt S3Stack.Outputs.BucketWesSiteEndpointUrl
         Prefix: !Ref Prefix
-        #SigninHtml: signin.html
-        #SignoutHtml: signout.html
         SigninHtml: !Ref SigninHtml
         SignoutHtml: !Ref SignoutHtml
