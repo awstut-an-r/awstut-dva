@@ -15,9 +15,9 @@ import {
 
 
 // Set the parameter
-const REGION = "ap-northeast-1";
-const USER_POOL_ID = "ap-northeast-1_AwzK8hCv4";
-const IDENTITY_POOL_ID = "ap-northeast-1:2ada5a79-724b-464f-927a-1e8f1f1a8059";
+const REGION = "[region]";
+const USER_POOL_ID = "[user-pool-id]";
+const IDENTITY_POOL_ID = "[id-pool-id]";
 const DATASET = "preference";
 const DATASET_KEY = "background-color";
 
@@ -59,7 +59,6 @@ const main = async () => {
       const syncSessionToken = listRecordsResponse.SyncSessionToken;
       const syncCount = (() => {
         for (let record of listRecordsResponse.Records) {
-          //console.log(record);
           if (record.Key == DATASET_KEY) {
             return record.SyncCount + 1;
           }
