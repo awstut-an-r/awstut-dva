@@ -6,10 +6,7 @@ Parameters:
     
   IndexHtml:
     Type: String
-    
-  #SignoutHtml:
-  #  Type: String
-    
+
 
 Resources:
   S3Bucket:
@@ -35,8 +32,5 @@ Resources:
           
           
 Outputs:
-  #BucketArn:
-  #  Value: !GetAtt S3Bucket.Arn
-    
   BucketWesSiteEndpointUrl:
     Value: !Sub "https://s3-ap-northeast-1.amazonaws.com/${S3Bucket}" 
