@@ -1,9 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  #BucketArn:
-  #  Type: String
-    
   BucketWesSiteEndpointUrl:
     Type: String
     
@@ -12,18 +9,6 @@ Parameters:
 
   Prefix:
     Type: String
-    
-  #SigninHtml:
-  #  Type: String
-  #  
-  #SignoutHtml:
-  #  Type: String
-    
-  #AuthenticatedParameter:
-  #  Type: String
-  #  
-  #UnauthenticatedParameter:
-  #  Type: String
   
   AuthenticatedFunctionArn:
     Type: String
@@ -52,19 +37,14 @@ Resources:
     Properties:
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
-        #- code
         - implicit
       AllowedOAuthScopes:
-        #- aws.cognito.signin.user.admin
-        #- email
         - openid
-        #- phone
         - profile
       CallbackURLs:
         - !Sub "${BucketWesSiteEndpointUrl}/${IndexHtml}"
-      ClientName: !Sub ${Prefix}-UserPoolClient
+      ClientName: !Sub "${Prefix}-UserPoolClient"
       ExplicitAuthFlows:
-        #- ALLOW_CUSTOM_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
       LogoutURLs:
@@ -118,10 +98,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- ssm:GetParameter
                   - lambda:InvokeFunction
                 Resource:
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AuthenticatedParameter}"
                   - !Ref AuthenticatedFunctionArn
 
   IdentityPoolUnauthenticatedRole:
@@ -146,11 +124,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- ssm:GetParameter
-                  #- ssm:*
-                  #- "*"
                   - lambda:InvokeFunction
                 Resource:
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${UnauthenticatedParameter}"
-                  #- !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
                   - !Ref UnauthenticatedFunctionArn
