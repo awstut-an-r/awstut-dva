@@ -51,9 +51,6 @@ if (idToken) {
   functionName = FUNCTION_NAME_UNAUTHENTICATED;
 }
 
-console.log(lambdaClient);
-console.log(functionName);
-
 (async () => {
   const response = await lambdaClient.send(
     new InvokeCommand({ FunctionName: functionName })
