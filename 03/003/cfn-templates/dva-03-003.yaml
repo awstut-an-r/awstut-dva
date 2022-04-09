@@ -12,15 +12,7 @@ Parameters:
   IndexHtml:
     Type: String
     Default: index.html
-    
-  #SigninHtml:
-  #  Type: String
-  #  Default: signin.html
-  #  
-  #SignoutHtml:
-  #  Type: String
-  #  Default: signout.html
-    
+
 
 Resources:
   S3Stack:
@@ -30,15 +22,6 @@ Resources:
       Parameters:
         Prefix: !Ref Prefix
         IndexHtml: !Ref IndexHtml
-        #SigninHtml: !Ref SigninHtml
-        #SignoutHtml: !Ref SignoutHtml
-        
-  #SSMStack:
-  #  Type: AWS::CloudFormation::Stack
-  #  Properties:
-  #    TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-ssm.yaml"
-  #    Parameters:
-  #      Prefix: !Ref Prefix
   
   LambdaStack:
     Type: AWS::CloudFormation::Stack
@@ -52,14 +35,8 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-cognito.yaml"
       Parameters:
-        #BucketArn: !GetAtt S3Stack.Outputs.BucketArn
-        #BucketAuthenticatedFolderName: authenticated
         BucketWesSiteEndpointUrl: !GetAtt S3Stack.Outputs.BucketWesSiteEndpointUrl
         IndexHtml: !Ref IndexHtml
         Prefix: !Ref Prefix
-        #SigninHtml: !Ref SigninHtml
-        #SignoutHtml: !Ref SignoutHtml
-        #AuthenticatedParameter: !GetAtt SSMStack.Outputs.AuthenticatedParameter
-        #UnauthenticatedParameter: !GetAtt SSMStack.Outputs.UnauthenticatedParameter
         AuthenticatedFunctionArn: !GetAtt LambdaStack.Outputs.AuthenticatedFunctionArn
         UnauthenticatedFunctionArn: !GetAtt LambdaStack.Outputs.UnauthenticatedFunctionArn
