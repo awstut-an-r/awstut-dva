@@ -55,7 +55,6 @@ if (idToken) {
   const response = await lambdaClient.send(
     new InvokeCommand({ FunctionName: functionName })
   );
-  console.log(response);
   document.getElementById("function-result").innerText = toUtf8(response.Payload);
 })();
 
