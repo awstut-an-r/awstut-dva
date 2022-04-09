@@ -17,12 +17,11 @@ import {
 
 
 // Set the parameter
-const REGION = "ap-northeast-1";
-const USER_POOL_ID = "ap-northeast-1_vZHz15Bo5";
-const IDENTITY_POOL_ID = "ap-northeast-1:a0102e09-b7e3-4e2b-9da3-e8b33c5f5088";
-const FUNCTION_NAME_AUTHENTICATED = "dva-03-003-AuthenticatedFunction";
-const FUNCTION_NAME_UNAUTHENTICATED = "dva-03-003-UnauthenticatedFunction";
-//const ACCOUNT_ID = "ACCOUNT_ID";
+const REGION = "[region]";
+const USER_POOL_ID = "[user-pool-id]";
+const IDENTITY_POOL_ID = "[id-pool-id]";
+const FUNCTION_NAME_AUTHENTICATED = "[function-name-01]";
+const FUNCTION_NAME_UNAUTHENTICATED = "[function-name-02]";
 
 const params = new URLSearchParams(location.hash.slice(1));
 const idToken = params.get("id_token");
