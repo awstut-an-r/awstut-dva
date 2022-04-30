@@ -60,9 +60,6 @@ Resources:
   LambdaLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
-      #CompatibleArchitectures:
-      #  - arm64
-      #  - x86_64
       CompatibleRuntimes:
         - !Ref Runtime
       Content:
@@ -210,16 +207,3 @@ Resources:
       FunctionName: !GetAtt Function3.Arn
       FunctionUrlAuthType: NONE
       Principal: "*"
-                  
-#Outputs:
-#  FunctionArn1:
-#    Value: !GetAtt Function1.Arn
-#    
-#  FunctionName1:
-#    Value: !Ref Function1
-#    
-#  FunctionArn2:
-#    Value: !GetAtt Function2.Arn
-#    
-#  FunctionName2:
-#    Value: !Ref Function2
