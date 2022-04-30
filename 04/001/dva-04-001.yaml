@@ -41,10 +41,6 @@ Parameters:
     Type: Number
     Default: 443
     
-  #LambdaPackage:
-  #  Type: String
-  #  Default: deploy.zip
-    
   MySQLPort:
     Type: Number
     Default: 3306
@@ -87,7 +83,6 @@ Resources:
         DBEngine: mysql
         DBEngineVersion: 8.0.27
         DBInstanceClass: db.t4g.micro
-        #DBInstanceIdentifier: !Sub "${Prefix}-dbinstance"
         DBName: !Ref DBName
         DBMasterUsername: !Ref DBMasterUsername
         DBMasterUserPassword: !Ref DBMasterUserPassword
