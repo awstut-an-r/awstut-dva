@@ -104,9 +104,6 @@ Resources:
 
 
 Outputs:
-  #VPC:
-  #  Value: !Ref VPC
-      
   FunctionSubnet1:
     Value: !Ref FunctionSubnet1
     
