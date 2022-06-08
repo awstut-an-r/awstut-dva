@@ -36,11 +36,6 @@ Resources:
       RoleArn: !GetAtt StateMachineRole.Arn
       StateMachineName: !Ref Prefix
       StateMachineType: STANDARD
-        
-  LogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: !Sub "${Prefix}-StateMachineLogGroup"
       
   StateMachineRole:
     Type: AWS::IAM::Role
@@ -80,3 +75,8 @@ Resources:
                   - logs:DescribeResourcePolicies
                   - logs:DescribeLogGroups
                 Resource: "*"
+                
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Sub "${Prefix}-StateMachineLogGroup"
