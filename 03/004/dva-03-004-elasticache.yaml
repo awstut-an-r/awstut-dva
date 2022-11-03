@@ -67,7 +67,6 @@ Resources:
           ReplicaAvailabilityZones:
             - !Sub "${AWS::Region}${AvailabilityZone2}"
           ReplicaCount: !Ref ReplicaCount
-      #NumCacheClusters: !Ref NumCacheClusters # Property NumCacheCluster cannot be defined along with Properties NumNodeGroups, ReplicasPerNodeGroup or NodeGroupConfiguration
       NumNodeGroups: !Ref NumNodeGroups
       Port: !Ref RedisPort
       ReplicationGroupDescription: !Sub "${Prefix}-ReplicationGroup"
