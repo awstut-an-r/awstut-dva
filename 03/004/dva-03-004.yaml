@@ -157,7 +157,6 @@ Resources:
   LambdaStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - VPCStack
       - ElastiCacheStack
       - LambdaLayerStack
     Properties:
