@@ -42,12 +42,9 @@ Resources:
       Code:
         ZipFile: |
           import datetime
-          import pprint
           import time
         
           def lambda_handler(event, context):
-            pprint.pprint(event)
-            
             return '{epoch_time} is even !'.format(
               epoch_time=event['epoch_time']['value'])
       FunctionName: !Sub "${Prefix}-function-02"
@@ -61,12 +58,9 @@ Resources:
       Code:
         ZipFile: |
           import datetime
-          import pprint
           import time
         
           def lambda_handler(event, context):
-            pprint.pprint(event)
-            
             return '{epoch_time} is odd !'.format(
               epoch_time=event['epoch_time']['value'])
       FunctionName: !Sub "${Prefix}-function-03"
@@ -87,16 +81,6 @@ Resources:
                 - lambda.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      #Policies:
-      #  - PolicyName: !Sub "${Prefix}-S3GetObjectPolicy"
-      #    PolicyDocument:
-      #      Version: 2012-10-17
-      #      Statement:
-      #        - Effect: Allow
-      #          Action:
-      #            - s3:GetObject
-      #          Resource:
-      #            - !Sub "arn:aws:s3:::${BulkS3Bucket}/*"
         
       
 Outputs:
