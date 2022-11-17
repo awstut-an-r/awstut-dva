@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Handler:
+    Type: String
+    
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+
+
+Resources:
+  Function1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import datetime
+          import time
+        
+          def lambda_handler(event, context):
+            now = datetime.datetime.now()
+            epoch_time = int(time.mktime(now.timetuple()))
+            
+            return {
+              'now':  now.strftime('%Y%m%d%H%M%S%f'),
+              'epoch_time': {
+                'value': epoch_time,
+                'is_even': (not bool(epoch_time % 2))
+              }
+            }
+      FunctionName: !Sub "${Prefix}-function-01"
+      Handler: !Ref Handler
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      
+  Function2:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import datetime
+          import pprint
+          import time
+        
+          def lambda_handler(event, context):
+            pprint.pprint(event)
+            
+            return '{epoch_time} is even !'.format(
+              epoch_time=event['epoch_time']['value'])
+      FunctionName: !Sub "${Prefix}-function-02"
+      Handler: !Ref Handler
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      
+  Function3:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import datetime
+          import pprint
+          import time
+        
+          def lambda_handler(event, context):
+            pprint.pprint(event)
+            
+            return '{epoch_time} is odd !'.format(
+              epoch_time=event['epoch_time']['value'])
+      FunctionName: !Sub "${Prefix}-function-03"
+      Handler: !Ref Handler
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      #Policies:
+      #  - PolicyName: !Sub "${Prefix}-S3GetObjectPolicy"
+      #    PolicyDocument:
+      #      Version: 2012-10-17
+      #      Statement:
+      #        - Effect: Allow
+      #          Action:
+      #            - s3:GetObject
+      #          Resource:
+      #            - !Sub "arn:aws:s3:::${BulkS3Bucket}/*"
+        
+      
+Outputs:
+  FunctionArn1:
+    Value: !GetAtt Function1.Arn
+
+  FunctionArn2:
+    Value: !GetAtt Function2.Arn
+    
+  FunctionArn3:
+    Value: !GetAtt Function3.Arn
