@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    
+    
+Resources:
+  Parameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "${Prefix}-Parameter"
+      Type: String
+      Value: Test Parameter
+
+
+Outputs:
+  Parameter:
+    Value: !Ref Parameter
