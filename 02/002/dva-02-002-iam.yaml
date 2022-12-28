@@ -23,10 +23,6 @@ Resources:
             Action: sts:AssumeRole
             Principal:
               AWS: !Ref CrossAccountId
-              #Service:
-              #  - lambda.amazonaws.com
-      #ManagedPolicyArns:
-      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
         - PolicyName: !Sub "${Prefix}-GetParameterPolicy"
           PolicyDocument:
