@@ -16,33 +16,14 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: Private
-      #BucketName: !Ref Prefix
       BucketName: !Ref UploadBucketName
       NotificationConfiguration:
-        #EventBridgeConfiguration: 
-        #  EventBridgeConfiguration
         LambdaConfigurations: 
           - Event: "s3:ObjectCreated:*"
-            #Filter: 
-            #  NotificationFilter
             Function: !Ref ThumbnailFunctionArn
-        #QueueConfigurations: 
-        #  - QueueConfiguration
-        #TopicConfigurations: 
-        #  - TopicConfiguration
-      
 
   ResizeBucket:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: Private
-      #BucketName: !Sub "${Prefix}-resized"
       BucketName: !Ref ResizeBucketName
-      
-      
-#Outputs:
-#  UploadBucket:
-#    Value: !Ref UploadBucket
-#    
-#  ResizeBucket:
-#    Value: !Ref ResizeBucket
