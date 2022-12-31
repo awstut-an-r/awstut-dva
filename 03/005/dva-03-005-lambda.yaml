@@ -53,7 +53,6 @@ Resources:
         S3Key: !Ref LayerS3Key
       Description: !Ref Prefix
       LayerName: !Ref Prefix
-      #LicenseInfo: MIT
       
   CustomResource:
     Type: Custom::CustomResource
@@ -138,16 +137,9 @@ Resources:
         Size: !Ref EphemeralStorageSize
       FunctionName: !Sub "${Prefix}-CustomResourceFunction"
       Handler: !Ref Handler
-      #Layers:
-      #  - !Ref LambdaLayer
       Runtime: !Ref Runtime
       Role: !GetAtt CustomResourceFunctionRole.Arn
       Timeout: !Ref Timeout
-      #VpcConfig:
-      #  SecurityGroupIds:
-      #    - !Ref FunctionSecurityGroup
-      #  SubnetIds:
-      #    - !Ref FunctionSubnet
       
   CustomResourceFunctionRole:
     Type: AWS::IAM::Role
