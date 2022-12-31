@@ -51,26 +51,16 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
       Parameters:
         Architecture: !Ref LambdaArchitecture
-        #BucketArn: !GetAtt S3Stack.Outputs.BucketArn
-        #BulkFile: !Ref BulkFile
-        #CodeS3Bucket: !Ref TemplateBucketName
-        #CodeS3Key: !Sub "${Prefix}/deploy.zip"
-        #DomainEndpoint: !GetAtt OpenSearchStack.Outputs.DomainEndpoint
         EphemeralStorageSize: !Ref LambdaEphemeralStorageSize
         Handler: !Ref LambdaHandler
         LayerBucket: !Ref TemplateBucketName
         LayerPackage: !Ref LambdaLayerPackage
         LayerS3Key: !Sub "${Prefix}/${LambdaLayerPackage}"
-        #LayerS3Key: !Sub "${Prefix}/layer.zip"
-        #MasterUserName: !Ref MasterUserName
-        #MasterUserPassword: !Ref MasterUserPassword
         Prefix: !Ref Prefix
         RequirementsParameter: !GetAtt SSMStack.Outputs.RequirementsParameter
-        #ResizeBucket: !GetAtt S3Stack.Outputs.ResizeBucket
         ResizeBucketName: !Sub "${Prefix}-resized"
         Runtime: !Ref LambdaRuntime
         Timeout: !Ref LambdaTimeout
-        #UploadBucket: !GetAtt S3Stack.Outputs.UploadBucket
         UploadBucketName: !Ref Prefix
         
   S3Stack:
