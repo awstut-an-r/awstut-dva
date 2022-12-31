@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  EphemeralStorageSize:
+    Type: Number
+
+  Handler:
+    Type: String
+    
+  LayerBucket:
+    Type: String
+    
+  LayerPackage:
+    Type: String
+    
+  LayerS3Key:
+    Type: String
+    
+  Prefix:
+    Type: String
+    
+  RequirementsParameter:
+    Type: String
+    
+  ResizeBucketName:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  Timeout:
+    Type: Number
+    
+  UploadBucketName:
+    Type: String
+
+
+Resources:
+  LambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    DependsOn:
+      - CustomResource
+    Properties:
+      CompatibleArchitectures:
+        - !Ref Architecture
+      CompatibleRuntimes:
+        - !Ref Runtime
+      Content:
+        S3Bucket: !Ref LayerBucket
+        S3Key: !Ref LayerS3Key
+      Description: !Ref Prefix
+      LayerName: !Ref Prefix
+      #LicenseInfo: MIT
+      
+  CustomResource:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !GetAtt CustomResourceFunction.Arn
+      
+  CustomResourceFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Environment:
+        Variables:
+          LAYER_PACKAGE: !Ref LayerPackage
+          REGION: !Ref AWS::Region
+          REQUIREMENTS_PARAMETER: !Ref RequirementsParameter
+          S3_BUCKET: !Ref LayerBucket
+          S3_BUCKET_FOLDER: !Ref Prefix
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import os
+          import pip
+          import shutil
+          import subprocess
+          
+          layer_package = os.environ['LAYER_PACKAGE']
+          region = os.environ['REGION']
+          requirements_parameter = os.environ['REQUIREMENTS_PARAMETER']
+          s3_bucket = os.environ['S3_BUCKET']
+          s3_bucket_folder = os.environ['S3_BUCKET_FOLDER']
+          
+          CREATE = 'Create'
+          response_data = {}
+          
+          work_dir = '/tmp'
+          requirements_file = 'requirements.txt'
+          package_dir = 'python'
+          
+          requirements_path = os.path.join(work_dir, requirements_file)
+          package_dir_path = os.path.join(work_dir, package_dir)
+          layer_package_path = os.path.join(
+            work_dir,
+            #os.path.splitext(os.path.basename(layer_package))[0]
+            layer_package
+            )
+          
+          def lambda_handler(event, context):
+            try:
+              if event['RequestType'] == CREATE:
+                ssm_client = boto3.client('ssm', region_name=region)
+                ssm_response = ssm_client.get_parameter(Name=requirements_parameter)
+                requirements = ssm_response['Parameter']['Value']
+                #print(requirements)
+                
+                with open(requirements_path, 'w') as file_data:
+                  print(requirements, file=file_data)
+                
+                pip.main(['install', '-t', package_dir_path, '-r', requirements_path])
+                shutil.make_archive(
+                  os.path.splitext(layer_package_path)[0],
+                  format='zip',
+                  root_dir=work_dir,
+                  base_dir=package_dir
+                  )
+                
+                s3_resource = boto3.resource('s3')
+                bucket = s3_resource.Bucket(s3_bucket)
+                
+                bucket.upload_file(
+                  layer_package_path,
+                  '/'.join([s3_bucket_folder, layer_package])
+                  )
+                
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+                
+            except Exception as e:
+              print(e)
+              cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
+      EphemeralStorage:
+        Size: !Ref EphemeralStorageSize
+      FunctionName: !Sub "${Prefix}-CustomResourceFunction"
+      Handler: !Ref Handler
+      #Layers:
+      #  - !Ref LambdaLayer
+      Runtime: !Ref Runtime
+      Role: !GetAtt CustomResourceFunctionRole.Arn
+      Timeout: !Ref Timeout
+      #VpcConfig:
+      #  SecurityGroupIds:
+      #    - !Ref FunctionSecurityGroup
+      #  SubnetIds:
+      #    - !Ref FunctionSubnet
+      
+  CustomResourceFunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CreateLambdaLayerPackagePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${RequirementsParameter}"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${LayerBucket}/*"
+                  
+  ThumbnailFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        ZipFile: |
+          import boto3
+          import os
+          import sys
+          import uuid
+          from urllib.parse import unquote_plus
+          from PIL import Image
+          import PIL.Image
+          
+          s3_client = boto3.client('s3')
+          
+          def resize_image(image_path, resized_path):
+            with Image.open(image_path) as image:
+                image.thumbnail(tuple(x / 2 for x in image.size))
+                image.save(resized_path)
+          
+          def lambda_handler(event, context):
+            for record in event['Records']:
+                bucket = record['s3']['bucket']['name']
+                key = unquote_plus(record['s3']['object']['key'])
+                tmpkey = key.replace('/', '')
+                download_path = '/tmp/{}{}'.format(uuid.uuid4(), tmpkey)
+                upload_path = '/tmp/resized-{}'.format(tmpkey)
+                s3_client.download_file(bucket, key, download_path)
+                resize_image(download_path, upload_path)
+                s3_client.upload_file(upload_path, '{}-resized'.format(bucket), key)
+      FunctionName: !Sub "${Prefix}-ThumbnailFunction"
+      Handler: !Ref Handler
+      Layers:
+        - !Ref LambdaLayer
+      Runtime: !Ref Runtime
+      Role: !GetAtt ThumbnailFunctionRole.Arn
+      Timeout: !Ref Timeout
+      
+  ThumbnailFunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CreateThumbnailPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${UploadBucketName}/*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${ResizeBucketName}/*"
+                  
+  S3Permission: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref ThumbnailFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${UploadBucketName}"
+      
+      
+Outputs:
+  ThumbnailFunctionArn:
+    Value: !GetAtt ThumbnailFunction.Arn

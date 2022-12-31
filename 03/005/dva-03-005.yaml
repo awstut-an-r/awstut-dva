@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TemplateBucketName:
+    Type: String
+    Default: awstut-bucket
+    
+  Prefix:
+    Type: String
+    Default: dva-03-005
+    
+  LambdaArchitecture:
+    Type: String
+    Default: arm64
+    
+  LambdaEphemeralStorageSize:
+    Type: Number
+    Default: 512
+    
+  LambdaHandler:
+    Type: String
+    Default: index.lambda_handler
+    
+  LambdaLayerPackage:
+    Type: String
+    Default: layer.zip
+    
+  LambdaRuntime:
+    Type: String
+    Default: python3.8
+    
+  LambdaTimeout:
+    Type: Number
+    Default: 300
+    
+    
+    
+Resources:
+  SSMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-ssm.yaml"
+      Parameters:
+        Prefix: !Ref Prefix
+        
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - SSMStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
+      Parameters:
+        Architecture: !Ref LambdaArchitecture
+        #BucketArn: !GetAtt S3Stack.Outputs.BucketArn
+        #BulkFile: !Ref BulkFile
+        #CodeS3Bucket: !Ref TemplateBucketName
+        #CodeS3Key: !Sub "${Prefix}/deploy.zip"
+        #DomainEndpoint: !GetAtt OpenSearchStack.Outputs.DomainEndpoint
+        EphemeralStorageSize: !Ref LambdaEphemeralStorageSize
+        Handler: !Ref LambdaHandler
+        LayerBucket: !Ref TemplateBucketName
+        LayerPackage: !Ref LambdaLayerPackage
+        LayerS3Key: !Sub "${Prefix}/${LambdaLayerPackage}"
+        #LayerS3Key: !Sub "${Prefix}/layer.zip"
+        #MasterUserName: !Ref MasterUserName
+        #MasterUserPassword: !Ref MasterUserPassword
+        Prefix: !Ref Prefix
+        RequirementsParameter: !GetAtt SSMStack.Outputs.RequirementsParameter
+        #ResizeBucket: !GetAtt S3Stack.Outputs.ResizeBucket
+        ResizeBucketName: !Sub "${Prefix}-resized"
+        Runtime: !Ref LambdaRuntime
+        Timeout: !Ref LambdaTimeout
+        #UploadBucket: !GetAtt S3Stack.Outputs.UploadBucket
+        UploadBucketName: !Ref Prefix
+        
+  S3Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdaStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-s3.yaml"
+      Parameters:
+        ResizeBucketName: !Sub "${Prefix}-resized"
+        ThumbnailFunctionArn: !GetAtt LambdaStack.Outputs.ThumbnailFunctionArn
+        UploadBucketName: !Ref Prefix
