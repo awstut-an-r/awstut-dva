@@ -39,7 +39,7 @@ Resources:
   NotificationRule:
     Type: AWS::CodeStarNotifications::NotificationRule
     Properties: 
-      DetailType: FULL
+      DetailType: BASIC
       EventTypeIds: 
         - codepipeline-pipeline-action-execution-failed
         - codepipeline-pipeline-stage-execution-failed
