@@ -12,37 +12,17 @@ Parameters:
   LambdaArchitecture:
     Type: String
     Default: arm64
-    
-  #LambdaEphemeralStorageSize:
-  #  Type: Number
-  #  Default: 512
-    
+
   LambdaHandler:
     Type: String
     Default: index.lambda_handler
-    
-  #LambdaLayerPackage:
-  #  Type: String
-  #  Default: layer.zip
-    
+
   LambdaRuntime:
     Type: String
     Default: python3.8
     
-  #LambdaTimeout:
-  #  Type: Number
-  #  Default: 300
-    
-    
     
 Resources:
-  #SSMStack:
-  #  Type: AWS::CloudFormation::Stack
-  #  Properties:
-  #    TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-ssm.yaml"
-  #    Parameters:
-  #      Prefix: !Ref Prefix
-  
   DynamodbStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -58,7 +38,6 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
       Parameters:
         Architecture: !Ref LambdaArchitecture
-        #EphemeralStorageSize: !Ref LambdaEphemeralStorageSize
         Handler: !Ref LambdaHandler
         Prefix: !Ref Prefix
         Runtime: !Ref LambdaRuntime
