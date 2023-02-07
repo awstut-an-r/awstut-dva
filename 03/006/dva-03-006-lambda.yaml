@@ -52,20 +52,6 @@ Resources:
                 session_id = str(uuid.uuid4())
               else:
                 session_id = cookie_dict[COOKIE_KEY]
-                
-            #C = cookies.SimpleCookie()
-            #C.load('; '.join([cookie for cookie in event['cookies']]))
-            ##print(C.items())
-            #cookie_dict = {k: v.value for k, v in C.items()}
-            #
-            #session_id = ''
-            #if not COOKIE_KEY in cookie_dict:
-            #  session_id = str(uuid.uuid4())
-            #else:
-            #  session_id = cookie_dict[COOKIE_KEY]
-              
-            #session_id = 'aaaaa'
-            print(session_id)
             
             dynamodb_get_item_response = dynamodb_client.get_item(
               TableName=TABLE_NAME,
@@ -73,7 +59,7 @@ Resources:
                 ATTR_SESSION_ID: {'S': session_id}
               }
             )
-            print(dynamodb_get_item_response)
+            #print(dynamodb_get_item_response)
             
             counter = 0
             if not DYNAMODB_ITEM_KEY in dynamodb_get_item_response:
@@ -89,7 +75,7 @@ Resources:
                 ATTR_COUNTER: {'N': str(counter)}
               }
             )
-            print(dynamodb_put_item_response)
+            #print(dynamodb_put_item_response)
             
             body = 'session-id: {session_id}, counter: {counter}'.format(
               session_id=session_id,
@@ -101,10 +87,8 @@ Resources:
           
             return {
               'statusCode': 200,
-              #'body': json.dumps('Hello form Awstut !!'),
               'body': body,
               'headers': {
-                #'Set-Cookie': 'hoge=HOGE'
                 'Set-Cookie': set_cookie
               }
             }
@@ -113,9 +97,7 @@ Resources:
           TABLE_NAME: !Ref Table
       FunctionName: !Sub "${Prefix}-function"
       Handler: !Ref Handler
-      #Handler: index.lambda_handler
       Runtime: !Ref Runtime
-      #Runtime: python3.8
       Role: !GetAtt FunctionRole.Arn
       
   FunctionRole:
@@ -141,7 +123,6 @@ Resources:
                 Action:
                   - dynamodb:GetItem
                   - dynamodb:PutItem
-                  #- dynamodb:Query
                   - dynamodb:UpdateItem
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}"
