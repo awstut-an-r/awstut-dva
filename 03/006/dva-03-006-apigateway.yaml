@@ -43,14 +43,7 @@ Resources:
       ApiId: !Ref HttpApi
       RouteKey: 'GET /'
       Target: !Sub "integrations/${Integration}"
-          
-  #Permission:
-  #  Type: AWS::Lambda::Permission
-  #  Properties:
-  #    FunctionName: !Ref FunctionName
-  #    Action: lambda:InvokeFunction
-  #    Principal: apigateway.amazonaws.com
-  
+
   ApiGatewayRole:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete
