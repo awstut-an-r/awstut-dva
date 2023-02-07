@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TemplateBucketName:
+    Type: String
+    Default: awstut-bucket
+    
+  Prefix:
+    Type: String
+    Default: dva-03-006
+    
+  LambdaArchitecture:
+    Type: String
+    Default: arm64
+    
+  #LambdaEphemeralStorageSize:
+  #  Type: Number
+  #  Default: 512
+    
+  LambdaHandler:
+    Type: String
+    Default: index.lambda_handler
+    
+  #LambdaLayerPackage:
+  #  Type: String
+  #  Default: layer.zip
+    
+  LambdaRuntime:
+    Type: String
+    Default: python3.8
+    
+  #LambdaTimeout:
+  #  Type: Number
+  #  Default: 300
+    
+    
+    
+Resources:
+  #SSMStack:
+  #  Type: AWS::CloudFormation::Stack
+  #  Properties:
+  #    TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-ssm.yaml"
+  #    Parameters:
+  #      Prefix: !Ref Prefix
+  
+  DynamodbStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-dynamodb.yaml"
+      Parameters:
+        Prefix: !Ref Prefix
+  
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - DynamodbStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
+      Parameters:
+        Architecture: !Ref LambdaArchitecture
+        #EphemeralStorageSize: !Ref LambdaEphemeralStorageSize
+        Handler: !Ref LambdaHandler
+        Prefix: !Ref Prefix
+        Runtime: !Ref LambdaRuntime
+        Table: !GetAtt DynamodbStack.Outputs.Table
+
+  ApiGatewayStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdaStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-apigateway.yaml"
+      Parameters:
+        FunctionArn: !GetAtt LambdaStack.Outputs.FunctionArn
+        FunctionName: !GetAtt LambdaStack.Outputs.FunctionName
+        Prefix: !Ref Prefix

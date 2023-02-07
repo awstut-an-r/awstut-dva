@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  Handler:
+    Type: String
+  
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  Table:
+    Type: String
+    
+    
+Resources:
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+          import os
+          import uuid
+          from http import cookies
+          
+          ATTR_COUNTER = 'counter'
+          ATTR_SESSION_ID = 'session-id'
+          COOKIE_KEY = 'cookie-test'
+          DYNAMODB_ITEM_KEY = 'Item'
+          TABLE_NAME = os.environ['TABLE_NAME']
+          
+          dynamodb_client = boto3.client('dynamodb')
+          
+          def lambda_handler(event, context):
+            session_id = ''
+            if not 'cookies' in event:
+              session_id = str(uuid.uuid4())
+            else:
+              C = cookies.SimpleCookie()
+              C.load('; '.join([cookie for cookie in event['cookies']]))
+              cookie_dict = {k: v.value for k, v in C.items()}
+              
+              if not COOKIE_KEY in cookie_dict:
+                session_id = str(uuid.uuid4())
+              else:
+                session_id = cookie_dict[COOKIE_KEY]
+                
+            #C = cookies.SimpleCookie()
+            #C.load('; '.join([cookie for cookie in event['cookies']]))
+            ##print(C.items())
+            #cookie_dict = {k: v.value for k, v in C.items()}
+            #
+            #session_id = ''
+            #if not COOKIE_KEY in cookie_dict:
+            #  session_id = str(uuid.uuid4())
+            #else:
+            #  session_id = cookie_dict[COOKIE_KEY]
+              
+            #session_id = 'aaaaa'
+            print(session_id)
+            
+            dynamodb_get_item_response = dynamodb_client.get_item(
+              TableName=TABLE_NAME,
+              Key={
+                ATTR_SESSION_ID: {'S': session_id}
+              }
+            )
+            print(dynamodb_get_item_response)
+            
+            counter = 0
+            if not DYNAMODB_ITEM_KEY in dynamodb_get_item_response:
+              counter = 1
+            else:
+              counter = int(
+                dynamodb_get_item_response[DYNAMODB_ITEM_KEY][ATTR_COUNTER]['N']) + 1
+              
+            dynamodb_put_item_response = dynamodb_client.put_item(
+              TableName=TABLE_NAME,
+              Item={
+                ATTR_SESSION_ID: {'S': session_id},
+                ATTR_COUNTER: {'N': str(counter)}
+              }
+            )
+            print(dynamodb_put_item_response)
+            
+            body = 'session-id: {session_id}, counter: {counter}'.format(
+              session_id=session_id,
+              counter=counter)
+              
+            set_cookie = '{cookie_key}={session_id}'.format(
+              cookie_key=COOKIE_KEY,
+              session_id=session_id)
+          
+            return {
+              'statusCode': 200,
+              #'body': json.dumps('Hello form Awstut !!'),
+              'body': body,
+              'headers': {
+                #'Set-Cookie': 'hoge=HOGE'
+                'Set-Cookie': set_cookie
+              }
+            }
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Table
+      FunctionName: !Sub "${Prefix}-function"
+      Handler: !Ref Handler
+      #Handler: index.lambda_handler
+      Runtime: !Ref Runtime
+      #Runtime: python3.8
+      Role: !GetAtt FunctionRole.Arn
+      
+  FunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SessionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  #- dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}/*"
+      
+      
+Outputs:
+  FunctionArn:
+    Value: !GetAtt Function.Arn
+    
+  FunctionName:
+    Value: !Ref Function
