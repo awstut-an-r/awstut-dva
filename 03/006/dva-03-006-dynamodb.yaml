@@ -12,8 +12,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: session-id
           AttributeType: S
-        #- AttributeName: comment
-        #  AttributeType: S
       BillingMode: PAY_PER_REQUEST
       KeySchema:
         - AttributeName: session-id
