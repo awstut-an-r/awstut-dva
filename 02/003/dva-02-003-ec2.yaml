@@ -32,11 +32,6 @@ Resources:
           SubnetId: !Ref InstanceSubnet
           GroupSet:
             - !Ref InstanceSecurityGroup
-      #Tags:
-      #  - Key: DLM
-      #    Value: INSTANCE
-      #  - Key: DLM
-      #    Value: AMI
       UserData: !Base64 |
         #!/bin/bash -xe
         curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
@@ -70,11 +65,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- s3:*
-                  #- s3:GetObject
                   - s3:PutObject
-                  #- s3:PutObjectAcl
-                  #- s3:ListBucket
                 Resource:
-                  #- !Sub "arn:aws:s3:::${BucketName}"
                   - !Sub "arn:aws:s3:::${BucketName}/*"
