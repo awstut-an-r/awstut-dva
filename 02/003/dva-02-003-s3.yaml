@@ -10,19 +10,7 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Ref Prefix
-      #NotificationConfiguration:
-      #  #EventBridgeConfiguration: 
-      #  #  EventBridgeConfiguration
-      #  LambdaConfigurations: 
-      #    - Event: "s3:ObjectCreated:*"
-      #      #Filter: 
-      #      #  NotificationFilter
-      #      Function: !Ref ThumbnailFunctionArn
-      #  #QueueConfigurations: 
-      #  #  - QueueConfiguration
-      #  #TopicConfigurations: 
-      #  #  - TopicConfiguration
-      
+
       
 Outputs:
   BucketName:
