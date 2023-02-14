@@ -42,29 +42,13 @@ Resources:
         AvailabilityZone1: !Ref AvailabilityZone1
         CidrIp1: 10.0.1.0/24
         CidrIp2: 10.0.2.0/24
-        #CidrIp3: 10.0.3.0/24
         HTTPSPort: !Ref HTTPSPort
-        #MySQLPort: !Ref MySQLPort
         Prefix: !Ref Prefix
         VPCCidrBlock: 10.0.0.0/16
-        
-  #EndpointStack:
-  #  Type: AWS::CloudFormation::Stack
-  #  DependsOn:
-  #    - VPCStack
-  #  Properties:
-  #    TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-endpoint.yaml"
-  #    Parameters:
-  #      EndpointSecurityGroup: !GetAtt VPCStack.Outputs.EndpointSecurityGroup
-  #      InstanceSubnet: !GetAtt VPCStack.Outputs.InstanceSubnet
-  #      #Prefix: !Ref Prefix
-  #      RouteTable: !GetAtt VPCStack.Outputs.RouteTable
-  #      VPC: !GetAtt VPCStack.Outputs.VPC
         
   EC2Stack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      #- EndpointStack
       - S3Stack
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-ec2.yaml"
