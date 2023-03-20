@@ -33,24 +33,17 @@ Resources:
       AlarmDescription: test alarm
       AlarmName: !Ref Prefix
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      #DatapointsToAlarm: Integer
       Dimensions: 
         - Name: !Ref CloudWatchMetricDimensionName
           Value: !Ref CloudWatchMetricDimensionValue
-      #EvaluateLowSampleCountPercentile: String
       EvaluationPeriods: 2
-      #ExtendedStatistic: String
       InsufficientDataActions: 
         - !Ref SNSTopicArn
       MetricName: !Ref CloudWatchMetricName
-      #Metrics: 
-      #  - MetricDataQuery
       Namespace: !Ref CloudWatchMetricNamespace
       OKActions: 
         - !Ref SNSTopicArn
       Period: 60
       Statistic: Average
       Threshold: 7.0
-      #ThresholdMetricId: String
-      #TreatMissingData: String
       Unit: Count
