@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TemplateBucketName:
+    Type: String
+    Default: awstut-bucket
+    
+  Prefix:
+    Type: String
+    Default: dva-05-003
+    
+  CloudWatchMetricDimensionName:
+    Type: String
+    Default: lambda
+    
+  CloudWatchMetricName:
+    Type: String
+    Default: randomnum
+    
+  CloudWatchMetricNamespace:
+    Type: String
+    Default: test
+    
+  LambdaArchitecture:
+    Type: String
+    Default: arm64
+    
+  LambdaHandler:
+    Type: String
+    Default: index.lambda_handler
+    
+  LambdaRuntime:
+    Type: String
+    Default: python3.8
+    
+  MailAddress:
+    Type: String
+    Default: mail@example.com
+
+Resources:
+  SNSStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-sns.yaml"
+      Parameters:
+        MailAddress: !Ref MailAddress
+        Prefix: !Ref Prefix
+        
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    #DependsOn:
+    #  - SSMStack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
+      Parameters:
+        Architecture: !Ref LambdaArchitecture
+        CloudWatchMetricDimensionName: !Ref CloudWatchMetricDimensionName
+        CloudWatchMetricDimensionValue: !Ref Prefix
+        CloudWatchMetricName: !Ref CloudWatchMetricName
+        CloudWatchMetricNamespace: !Ref CloudWatchMetricNamespace
+        Handler: !Ref LambdaHandler
+        Prefix: !Ref Prefix
+        Runtime: !Ref LambdaRuntime
+        
+  EventBridgeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-eventbridge.yaml"
+      Parameters:
+        Function: !GetAtt LambdaStack.Outputs.Function
+        FunctionArn: !GetAtt LambdaStack.Outputs.FunctionArn
+        Prefix: !Ref Prefix
+        
+  CloudWatchStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-cloudwatch.yaml"
+      Parameters:
+        CloudWatchMetricDimensionName: !Ref CloudWatchMetricDimensionName
+        CloudWatchMetricDimensionValue: !Ref Prefix
+        CloudWatchMetricName: !Ref CloudWatchMetricName
+        CloudWatchMetricNamespace: !Ref CloudWatchMetricNamespace
+        Function: !GetAtt LambdaStack.Outputs.Function
+        SNSTopicArn: !GetAtt SNSStack.Outputs.TopicArn
+        #Architecture: !Ref LambdaArchitecture
+        #CloudWatchMetricName: !Ref CloudWatchMetricName
+        #CloudWatchMetricNamespace: !Ref CloudWatchMetricNamespace
+        #CloudWatchMetricDimensionName: lambda
+        #CloudWatchMetricDimensionValue: !Ref Prefix
+        #Handler: !Ref LambdaHandler
+        #Prefix: !Ref Prefix
+        #Runtime: !Ref LambdaRuntime
+        Prefix: !Ref Prefix
