@@ -48,8 +48,6 @@ Resources:
         
   LambdaStack:
     Type: AWS::CloudFormation::Stack
-    #DependsOn:
-    #  - SSMStack
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
       Parameters:
@@ -64,6 +62,8 @@ Resources:
         
   EventBridgeStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdaStack
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-eventbridge.yaml"
       Parameters:
@@ -73,6 +73,9 @@ Resources:
         
   CloudWatchStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdaStack
+      - SNSStack
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-cloudwatch.yaml"
       Parameters:
@@ -82,12 +85,4 @@ Resources:
         CloudWatchMetricNamespace: !Ref CloudWatchMetricNamespace
         Function: !GetAtt LambdaStack.Outputs.Function
         SNSTopicArn: !GetAtt SNSStack.Outputs.TopicArn
-        #Architecture: !Ref LambdaArchitecture
-        #CloudWatchMetricName: !Ref CloudWatchMetricName
-        #CloudWatchMetricNamespace: !Ref CloudWatchMetricNamespace
-        #CloudWatchMetricDimensionName: lambda
-        #CloudWatchMetricDimensionValue: !Ref Prefix
-        #Handler: !Ref LambdaHandler
-        #Prefix: !Ref Prefix
-        #Runtime: !Ref LambdaRuntime
         Prefix: !Ref Prefix
