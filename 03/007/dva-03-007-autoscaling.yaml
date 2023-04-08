@@ -47,45 +47,15 @@ Resources:
           Arn: !GetAtt InstanceProfile.Arn
         ImageId: !Ref ImageId
         InstanceType: !Ref InstanceType
-        #LaunchConfigurationName: !Sub "${Prefix}-LaunchConfiguration"
-        #SecurityGroups: 
         SecurityGroupIds: 
           - !Ref InstanceSecurityGroup
-        #UserData: !Base64 |
-        #  #!/bin/bash -xe
-        #  yum update -y
-        #  yum install -y httpd
-        #  systemctl start httpd
-        #  systemctl enable httpd
-        #  ec2-metadata -i > /var/www/html/index.html
       LaunchTemplateName: !Sub "${Prefix}-LaunchTemplate"
 
-  #LaunchConfiguration:
-  #  Type: AWS::AutoScaling::LaunchConfiguration
-  #  Properties:
-  #    IamInstanceProfile: !Ref InstanceProfile
-  #    ImageId: !Ref ImageId
-  #    InstanceType: !Ref InstanceType
-  #    LaunchConfigurationName: !Sub "${Prefix}-LaunchConfiguration"
-  #    SecurityGroups: 
-  #      - !Ref InstanceSecurityGroup
-  #    #UserData: !Base64 |
-  #    #  #!/bin/bash -xe
-  #    #  yum update -y
-  #    #  yum install -y httpd
-  #    #  systemctl start httpd
-  #    #  systemctl enable httpd
-  #    #  ec2-metadata -i > /var/www/html/index.html
-  #    #  
-  #    #  yes > /dev/null
-        
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      #AutoScalingGroupName: !Sub "${Prefix}-AutoScalingGroup"
       AutoScalingGroupName: !Ref AutoScalingGroupName
       DesiredCapacity: !Ref DesiredCapacity
-      #LaunchConfigurationName: !Ref LaunchConfiguration
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
@@ -103,8 +73,6 @@ Resources:
       AutoScalingGroupName: !Ref AutoScalingGroup
       PolicyType: TargetTrackingScaling
       TargetTrackingConfiguration:
-        #PredefinedMetricSpecification:
-        #  PredefinedMetricType: ASGAverageCPUUtilization
         CustomizedMetricSpecification: 
           Dimensions: 
             - Name: AutoScalingGroupName
