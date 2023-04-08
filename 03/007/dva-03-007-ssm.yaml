@@ -1,15 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  #Instance:
-  #  Type: String
-    
   Prefix:
     Type: String
     
-  #SSMLogBucket:
-  #  Type: String
-  
   TargetsKey:
     Type: String
     
@@ -56,10 +50,6 @@ Resources:
     Properties:
       AssociationName: !Sub "${Prefix}-aws-configure-aws-package-association"
       Name: AWS-ConfigureAWSPackage
-      #OutputLocation:
-      #  S3Location:
-      #    OutputS3BucketName: !Ref SSMLogBucket
-      #    OutputS3KeyPrefix: !Sub "${Prefix}/aws-configure-aws-package-association"
       Parameters:
         action:
           - Install
@@ -70,9 +60,6 @@ Resources:
         version:
           - latest
       Targets:
-        #- Key: InstanceIds
-        #  Values:
-        #    - !Ref Instance
         - Key: !Ref TargetsKey
           Values:
             - !Ref TargetsValue
@@ -86,10 +73,6 @@ Resources:
     Properties:
       AssociationName: !Sub "${Prefix}-amazon-cloudwatch-manage-agent-association"
       Name: AmazonCloudWatch-ManageAgent
-      #OutputLocation:
-      #  S3Location:
-      #    OutputS3BucketName: !Ref SSMLogBucket
-      #    OutputS3KeyPrefix: !Sub "${Prefix}/amazon-cloudwatch-manage-agent"
       Parameters:
         action:
           - configure
@@ -99,14 +82,9 @@ Resources:
           - ssm
         optionalConfigurationLocation:
           - !Ref CloudWatchConfigParemeter
-        #optionalOpenTelemetryCollectorConfigurationSource:
-        #  - ssm
         optionalRestart:
           - "yes"
       Targets:
-        #- Key: InstanceIds
-        #  Values:
-        #    - !Ref Instance
         - Key: !Ref TargetsKey
           Values:
             - !Ref TargetsValue
@@ -119,10 +97,6 @@ Resources:
     Properties:
       AssociationName: !Sub "${Prefix}-run-shellscript-association"
       Name: AWS-RunShellScript
-      #OutputLocation:
-      #  S3Location:
-      #    OutputS3BucketName: !Ref LogBucketName
-      #    OutputS3KeyPrefix: !Sub "${Prefix}/shellscript-association-log"
       Parameters:
         commands:
           - "sudo yum update -y"
@@ -131,9 +105,6 @@ Resources:
           - "sudo systemctl enable httpd"
           - "ec2-metadata -i > /var/www/html/index.html"
       Targets:
-        #- Key: InstanceIds
-        #  Values:
-        #    - !Ref Instance4
         - Key: !Ref TargetsKey
           Values:
             - !Ref TargetsValue
