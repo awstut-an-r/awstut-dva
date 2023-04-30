@@ -147,7 +147,6 @@ Resources:
         - IpProtocol: tcp
           FromPort: !Ref BottlePort
           ToPort: !Ref BottlePort
-          #CidrIp: 0.0.0.0/0
           SourceSecurityGroupId: !Ref ALBSecurityGroup
           
   EndpointSecurityGroup:
