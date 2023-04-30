@@ -9,13 +9,7 @@ Parameters:
     
   HTTPPort:
     Type: Number
-    
-  #Instance1:
-  #  Type: String
-  #  
-  #Instance2:
-  #  Type: String
-    
+
   Prefix:
     Type: String
     
@@ -63,7 +57,6 @@ Resources:
       VpcId: !Ref VPC
       Name: !Sub "${Prefix}-ALBTargetGroup"
       Protocol: HTTP
-      #Port: !Ref HTTPPort
       Port: !Ref BottlePort
       HealthCheckProtocol: HTTP
       HealthCheckPath: /
@@ -74,9 +67,6 @@ Resources:
       HealthCheckIntervalSeconds: !Ref HealthCheckIntervalSeconds
       Matcher: 
         HttpCode: !Ref HttpCode
-      #Targets:
-      #  - Id: !Ref Instance1
-      #  - Id: !Ref Instance2
       TargetType: ip
         
   ALBListener:
