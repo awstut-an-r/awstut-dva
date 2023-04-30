@@ -12,9 +12,6 @@ Parameters:
     
   ECRRepositoryName:
     Type: String
-    
-  #HTTPPort:
-  #  Type: Number
 
   Prefix:
     Type: String
@@ -78,15 +75,8 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              #- Effect: Allow
-              #  Action:
-              #    - sqs:GetQueueUrl
-              #    - sqs:SendMessage
-              #  Resource:
-              #    - Fn::ImportValue: !Sub ${Prefix}-QueueArn
               - Effect: Allow
                 Action:
-                  #- dynamodb:PutItem
                   - dynamodb:Scan
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${Table}"
@@ -96,7 +86,6 @@ Resources:
     Properties:
       ContainerDefinitions:
         - Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepositoryName}:latest"
-          #Image: nginx:latest
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -105,14 +94,9 @@ Resources:
               awslogs-stream-prefix: !Ref Prefix
           Name: !Sub "${Prefix}-bottle"
           PortMappings:
-            #- ContainerPort: !Ref HTTPPort
-            #  HostPort: !Ref HTTPPort
             - ContainerPort: !Ref BottlePort
               HostPort: !Ref BottlePort
           Environment:
-            #- Name: QueueName
-            #  Value:
-            #    Fn::ImportValue: !Sub ${Prefix}-QueueName
             - Name: TABLE_NAME
               Value: !Ref Table
       Cpu: !Ref TaskCpu
@@ -129,18 +113,15 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties:
-      #Cluster: !Ref Cluster1
       Cluster: !Ref Cluster
       DesiredCount: 1
       LaunchType: FARGATE
       LoadBalancers:
         - ContainerName: !Sub "${Prefix}-bottle"
-          #ContainerPort: !Ref HTTPPort
           ContainerPort: !Ref BottlePort
           TargetGroupArn: !Ref ALBTargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
-          #AssignPublicIp: ENABLED
           SecurityGroups:
             - !Ref ContainerSecurityGroup
           Subnets:
@@ -157,7 +138,6 @@ Resources:
       MaxCapacity: 3
       MinCapacity: 1
       ResourceId: !Select [5, !Split [":", !Ref Service]]
-      #ResourceId: !GetAtt Service.Name
       RoleARN: !GetAtt ServiceTaskScalingRole.Arn
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
@@ -172,15 +152,6 @@ Resources:
       PolicyType: TargetTrackingScaling
       ScalingTargetId: !Ref ScalableTarget
       TargetTrackingScalingPolicyConfiguration: 
-        #CustomizedMetricSpecification: 
-        #  Dimensions: 
-        #    - Name: QueueName
-        #      Value:
-        #        Fn::ImportValue: !Sub ${Prefix}-QueueName
-        #  MetricName: ApproximateNumberOfMessagesVisible
-        #  Namespace: AWS/SQS
-        #  Statistic: Average
-        #  Unit: Count
         DisableScaleIn: false
         PredefinedMetricSpecification:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
@@ -192,7 +163,6 @@ Resources:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete
     Properties:
-      #RoleName: Service2TaskScalingRole
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
