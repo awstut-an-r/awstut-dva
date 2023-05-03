@@ -7,7 +7,7 @@ Parameters:
     
   Prefix:
     Type: String
-    Default: dva-02-004
+    Default: [bucket-name]
     
   BottlePort:
     Type: Number
