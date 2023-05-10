@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  #CloudWatchMetricDimensionName:
+  #  Type: String
+  #  
+  #CloudWatchMetricDimensionValue:
+  #  Type: String
+  #  
+  #CloudWatchMetricName:
+  #  Type: String
+  #  
+  #CloudWatchMetricNamespace:
+  #  Type: String
+
+  Handler:
+    Type: String
+    
+  LambdaInsightsLayer:
+    Type: String
+    
+  MemorySize:
+    Type: Number
+    
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  Timeout:
+    Type: Number
+    
+
+Resources:
+  Function1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      #Environment:
+      #  Variables:
+      #    DIMENSION_NAME: !Ref CloudWatchMetricDimensionName
+      #    DIMENSION_VALUE: !Ref CloudWatchMetricDimensionValue
+      #    METRIC_NAME: !Ref CloudWatchMetricName
+      #    NAMESPACE: !Ref CloudWatchMetricNamespace
+      Code:
+        ZipFile: |
+          import datetime
+          
+          def lambda_handler(event, context):
+            print('awstut!')
+            return {
+              'statusCode': 200,
+              'body': str(datetime.datetime.now())
+            }
+      FunctionName: !Sub "${Prefix}-function1"
+      Handler: !Ref Handler
+      Layers:
+        #- !Ref LambdaLayer
+        #- arn:aws:lambda:ap-northeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:2
+        - !Ref LambdaInsightsLayer
+      MemorySize: !Ref MemorySize
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      Timeout: !Ref Timeout
+      
+  FunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt Function1.Arn
+      
+  FunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunctionUrl
+      FunctionName: !GetAtt Function1.Arn
+      FunctionUrlAuthType: NONE
+      Principal: "*"
+      
+  Function2:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Environment:
+        Variables:
+          FUNCTION_URL: !GetAtt FunctionUrl.FunctionUrl
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import urllib.request
+          
+          function_url = os.environ['FUNCTION_URL']
+          limit = 5
+          
+          def lambda_handler(event, context):
+            responses = [urllib.request.urlopen(function_url).read().decode("utf-8") for i in range(limit)]
+            
+            return {
+              'statusCode': 200,
+              'body': json.dumps(responses, indent=2)
+            }
+      FunctionName: !Sub "${Prefix}-function2"
+      Handler: !Ref Handler
+      Layers:
+        #- !Ref LambdaLayer
+        #- arn:aws:lambda:ap-northeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:2
+        - !Ref LambdaInsightsLayer
+      MemorySize: !Ref MemorySize
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      Timeout: !Ref Timeout
+      
+  Function3:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      #Environment:
+      #  Variables:
+      #    FUNCTION_URL: !GetAtt FunctionUrl.FunctionUrl
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+            while True:
+              pass
+      FunctionName: !Sub "${Prefix}-function3"
+      Handler: !Ref Handler
+      Layers:
+        #- !Ref LambdaLayer
+        #- arn:aws:lambda:ap-northeast-1:580247275435:layer:LambdaInsightsExtension-Arm64:2
+        - !Ref LambdaInsightsLayer
+      MemorySize: !Ref MemorySize
+      Runtime: !Ref Runtime
+      Role: !GetAtt FunctionRole.Arn
+      Timeout: !Ref Timeout
+      
+  FunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
+      #Policies:
+      #  - PolicyName: CreateThumbnailPolicy
+      #    PolicyDocument:
+      #      Version: 2012-10-17
+      #      Statement:
+      #        - Effect: Allow
+      #          Action:
+      #            - cloudwatch:PutMetricData
+      #          Resource: "*"
+
+
+Outputs:
+  Function1:
+    Value: !Ref Function1
+    
+  Function2:
+    Value: !Ref Function2
+    
+  Function3:
+    Value: !Ref Function3
+    
+  FunctionArn1:
+    Value: !GetAtt Function1.Arn
+    
+  FunctionArn2:
+    Value: !GetAtt Function2.Arn
+    
+  FunctionArn3:
+    Value: !GetAtt Function3.Arn

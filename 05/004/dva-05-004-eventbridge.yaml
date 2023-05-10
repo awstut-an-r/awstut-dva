@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Function1:
+    Type: String
+    
+  Function2:
+    Type: String
+    
+  Function3:
+    Type: String
+    
+  FunctionArn1:
+    Type: String
+    
+  FunctionArn2:
+    Type: String
+    
+  FunctionArn3:
+    Type: String
+    
+  Prefix:
+    Type: String
+    
+    
+Resources:
+  Rule1:
+    Type: AWS::Events::Rule
+    Properties: 
+      #Description: String
+      #EventBusName: String
+      #EventPattern: Json
+      Name: !Sub "${Prefix}-EventsRule-01"
+      #RoleArn: !GetAtt EventsRuleRole.Arn
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets: 
+        - Arn: !Ref FunctionArn1
+          Id: !Ref Function1
+          #RoleArn: !GetAtt EventsRuleRole.Arn
+          
+  Rule2:
+    Type: AWS::Events::Rule
+    Properties: 
+      #Description: String
+      #EventBusName: String
+      #EventPattern: Json
+      Name: !Sub "${Prefix}-EventsRule-02"
+      #RoleArn: !GetAtt EventsRuleRole.Arn
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets: 
+        - Arn: !Ref FunctionArn2
+          Id: !Ref Function2
+          #RoleArn: !GetAtt EventsRuleRole.Arn
+          
+  Rule3:
+    Type: AWS::Events::Rule
+    Properties: 
+      #Description: String
+      #EventBusName: String
+      #EventPattern: Json
+      Name: !Sub "${Prefix}-EventsRule-03"
+      #RoleArn: !GetAtt EventsRuleRole.Arn
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets: 
+        - Arn: !Ref FunctionArn3
+          Id: !Ref Function3
+          #RoleArn: !GetAtt EventsRuleRole.Arn
+  
+  EventsRulePermission1: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref Function1
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt Rule1.Arn
+      
+  EventsRulePermission2: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref Function2
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt Rule2.Arn
+      
+  EventsRulePermission3: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref Function3
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt Rule3.Arn
