@@ -27,47 +27,32 @@ Resources:
   Rule1:
     Type: AWS::Events::Rule
     Properties: 
-      #Description: String
-      #EventBusName: String
-      #EventPattern: Json
       Name: !Sub "${Prefix}-EventsRule-01"
-      #RoleArn: !GetAtt EventsRuleRole.Arn
       ScheduleExpression: rate(1 minute)
       State: ENABLED
       Targets: 
         - Arn: !Ref FunctionArn1
           Id: !Ref Function1
-          #RoleArn: !GetAtt EventsRuleRole.Arn
           
   Rule2:
     Type: AWS::Events::Rule
     Properties: 
-      #Description: String
-      #EventBusName: String
-      #EventPattern: Json
       Name: !Sub "${Prefix}-EventsRule-02"
-      #RoleArn: !GetAtt EventsRuleRole.Arn
       ScheduleExpression: rate(1 minute)
       State: ENABLED
       Targets: 
         - Arn: !Ref FunctionArn2
           Id: !Ref Function2
-          #RoleArn: !GetAtt EventsRuleRole.Arn
           
   Rule3:
     Type: AWS::Events::Rule
     Properties: 
-      #Description: String
-      #EventBusName: String
-      #EventPattern: Json
       Name: !Sub "${Prefix}-EventsRule-03"
-      #RoleArn: !GetAtt EventsRuleRole.Arn
       ScheduleExpression: rate(1 minute)
       State: ENABLED
       Targets: 
         - Arn: !Ref FunctionArn3
           Id: !Ref Function3
-          #RoleArn: !GetAtt EventsRuleRole.Arn
   
   EventsRulePermission1: 
     Type: AWS::Lambda::Permission
