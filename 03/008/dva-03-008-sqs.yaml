@@ -15,59 +15,27 @@ Resources:
   StandardQueue:
     Type: AWS::SQS::Queue
     Properties:
-      #ContentBasedDeduplication: Boolean
-      #DeduplicationScope: String
-      #DelaySeconds: Integer
-      #FifoQueue: false
-      #FifoThroughputLimit: String
-      #KmsDataKeyReusePeriodSeconds: Integer
-      #KmsMasterKeyId: String
-      #MaximumMessageSize: Integer
-      #MessageRetentionPeriod: Integer
       QueueName: !Sub "${Prefix}-standard"
       ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
-      #RedriveAllowPolicy: Json
-      #RedrivePolicy: Json
-      #SqsManagedSseEnabled: Boolean
-      #Tags: 
-      #  - Tag
       VisibilityTimeout: !Ref VisibilityTimeout
       
   FifoQueue:
     Type: AWS::SQS::Queue
     Properties:
       ContentBasedDeduplication: true
-      #DeduplicationScope: String
-      #DelaySeconds: Integer
       FifoQueue: true
-      #FifoThroughputLimit: String
-      #KmsDataKeyReusePeriodSeconds: Integer
-      #KmsMasterKeyId: String
-      #MaximumMessageSize: Integer
-      #MessageRetentionPeriod: Integer
       QueueName: !Sub "${Prefix}.fifo"
       ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
-      #RedriveAllowPolicy: Json
-      #RedrivePolicy: Json
-      #SqsManagedSseEnabled: Boolean
-      #Tags: 
-      #  - Tag
       VisibilityTimeout: !Ref VisibilityTimeout
       
       
 Outputs:
-  #StandardQueueName:
-  #  Value: !GetAtt StandardQueue.QueueName
-  
   StandardQueueUrl:
     Value: !Ref StandardQueue
       
   StandardQueueArn:
     Value: !GetAtt StandardQueue.Arn
-    
-  #FIFOQueueName:
-  #  Value: !GetAtt FIFOQueue.QueueName
-  
+
   FifoQueueUrl:
     Value: !Ref FifoQueue
 
