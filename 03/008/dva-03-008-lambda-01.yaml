@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  #Architecture:
+  #  Type: String
+  
+  FifoQueueArn:
+    Type: String
+    
+  #FIFOQueueName:
+  #  Type: String
+  
+  FifoQueueUrl:
+    Type: String
+    
+  LambdaHandler:
+    Type: String
+    
+  LambdaMemorySize:
+    Type: Number
+    
+  LambdaRuntime:
+    Type: String
+    
+  LambdaTimeout:
+    Type: String
+    
+  Prefix:
+    Type: String
+    
+  StandardQueueArn:
+    Type: String
+    
+  #StandardQueueName:
+  #  Type: String
+  
+  StandardQueueUrl:
+    Type: String
+    
+    
+    
+Resources:
+  Function1:
+    Type: AWS::Lambda::Function
+    Properties:
+      #Architectures:
+      #  - !Ref Architecture
+      Code:
+        ZipFile: |
+          import boto3
+          import datetime
+          #import json
+          import os
+          
+          n = 10
+          
+          #fifo_queue_name = os.environ['FIFO_QUEUE_NAME']
+          fifo_queue_url = os.environ['FIFO_QUEUE_URL']
+          message_group_id = os.environ['MESSAGE_GROUP_ID']
+          #standard_queue_name = os.environ['STANDARD_QUEUE_NAME']
+          standard_queue_url = os.environ['STANDARD_QUEUE_URL']
+          region_name = os.environ['REGION_NAME']
+            
+          client = boto3.client('sqs', region_name=region_name)
+          
+          def lambda_handler(event, context):
+            for i in range(n):
+              now = datetime.datetime.now()
+              now_str = now.strftime('%Y-%m-%d %H:%M:%S:%f')
+              body = '{n}: {datetime}'.format(n=i, datetime=now_str)
+              
+              response_stndard = client.send_message(
+                QueueUrl=standard_queue_url,
+                #MessageBody=now_str,
+                #MessageBody=str(i),
+                MessageBody=body,
+                #DelaySeconds=123,
+                #MessageAttributes={
+                #    'string': {
+                #        'StringValue': 'string',
+                #        'BinaryValue': b'bytes',
+                #        'StringListValues': [
+                #            'string',
+                #        ],
+                #        'BinaryListValues': [
+                #            b'bytes',
+                #        ],
+                #        'DataType': 'string'
+                #    }
+                #},
+                #MessageSystemAttributes={
+                #    'string': {
+                #        'StringValue': 'string',
+                #        'BinaryValue': b'bytes',
+                #        'StringListValues': [
+                #            'string',
+                #        ],
+                #        'BinaryListValues': [
+                #            b'bytes',
+                #        ],
+                #        'DataType': 'string'
+                #    }
+                #},
+                #MessageDeduplicationId='string',
+                #MessageGroupId=message_group_id
+              )
+              print(response_stndard)
+              
+              response_fifo = client.send_message(
+                QueueUrl=fifo_queue_url,
+                #MessageBody=now_str,
+                #MessageBody=str(i),
+                MessageBody=body,
+                #DelaySeconds=123,
+                #MessageAttributes={
+                #    'string': {
+                #        'StringValue': 'string',
+                #        'BinaryValue': b'bytes',
+                #        'StringListValues': [
+                #            'string',
+                #        ],
+                #        'BinaryListValues': [
+                #            b'bytes',
+                #        ],
+                #        'DataType': 'string'
+                #    }
+                #},
+                #MessageSystemAttributes={
+                #    'string': {
+                #        'StringValue': 'string',
+                #        'BinaryValue': b'bytes',
+                #        'StringListValues': [
+                #            'string',
+                #        ],
+                #        'BinaryListValues': [
+                #            b'bytes',
+                #        ],
+                #        'DataType': 'string'
+                #    }
+                #},
+                #MessageDeduplicationId='string',
+                MessageGroupId=message_group_id
+              )
+              print(response_fifo)
+      Environment:
+        Variables:
+          #FIFO_QUEUE_NAME: !Ref FIFOQueueName
+          FIFO_QUEUE_URL: !Ref FifoQueueUrl
+          MESSAGE_GROUP_ID: !Ref Prefix
+          REGION_NAME: !Ref AWS::Region
+          #STANDARD_QUEUE_NAME: !Ref StandardQueueName
+          STANDARD_QUEUE_URL: !Ref StandardQueueUrl
+          #queue_name: !Ref QueueName
+          #region_name: !Ref AWS::Region
+      FunctionName: !Sub "${Prefix}-Function1"
+      Handler: !Ref LambdaHandler
+      MemorySize: !Ref LambdaMemorySize
+      #PackageType: Zip
+      Runtime: !Ref LambdaRuntime
+      #Runtime: python3.8
+      Role: !GetAtt LambdaRole1.Arn
+      Timeout: !Ref LambdaTimeout
+
+  LambdaRole1:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyName: SendSQSMessagePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:GetQueueUrl
+                  - sqs:SendMessage
+                Resource:
+                  - !Ref FifoQueueArn
+                  - !Ref StandardQueueArn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
