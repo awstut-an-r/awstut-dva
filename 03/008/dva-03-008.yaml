@@ -16,11 +16,7 @@ Parameters:
   LambdaHandler:
     Type: String
     Default: index.lambda_handler
-    
-  #MaxNumberOfMessages:
-  #  Type: Number
-  #  Default: 10
-    
+
   LambdaMemorySize:
     Type: Number
     Default: 128
@@ -51,9 +47,7 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda-01.yaml"
       Parameters:
-        #Architecture: !Ref Architecture
         FifoQueueArn: !GetAtt SQSStack.Outputs.FifoQueueArn
-        #FIFOQueueName: !GetAtt SQSStack.Outputs.FIFOQueueName
         FifoQueueUrl: !GetAtt SQSStack.Outputs.FifoQueueUrl
         LambdaHandler: !Ref LambdaHandler
         LambdaMemorySize: !Ref LambdaMemorySize
@@ -62,11 +56,6 @@ Resources:
         Prefix: !Ref Prefix
         StandardQueueArn: !GetAtt SQSStack.Outputs.StandardQueueArn
         StandardQueueUrl: !GetAtt SQSStack.Outputs.StandardQueueUrl
-        #StandardQueueName: !GetAtt SQSStack.Outputs.StandardQueueName
-        #S3Bucket:
-        #  Fn::ImportValue: !Sub "${Prefix}-S3Bucket"
-        #S3Key: deploy_package.zip
-        #SSMParameter: !GetAtt SSMStack.Outputs.SSMParameter
         
   LambdaStack2:
     Type: AWS::CloudFormation::Stack
@@ -75,17 +64,11 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda-02.yaml"
       Parameters:
-        #Architecture: !Ref Architecture
         BatchSize: !Ref BatchSize
         FifoQueueArn: !GetAtt SQSStack.Outputs.FifoQueueArn
-        #FIFOQueueUrl: !GetAtt SQSStack.Outputs.FIFOQueueUrl
         LambdaHandler: !Ref LambdaHandler
         LambdaMemorySize: !Ref LambdaMemorySize
         LambdaRuntime: !Ref LambdaRuntime
         LambdaTimeout: !Ref LambdaTimeout
-        #LambdaRoleArn: !GetAtt LambdaRoleStack.Outputs.LambdaRoleArn
-        #MaxNumberOfMessages: !Ref MaxNumberOfMessages
-        #PackageType: Zip
         Prefix: !Ref Prefix
         StandardQueueArn: !GetAtt SQSStack.Outputs.StandardQueueArn
-        #StandardQueueUrl: !GetAtt SQSStack.Outputs.StandardQueueUrl
