@@ -12,15 +12,7 @@ Parameters:
   HTTPPort:
     Type: Number
     Default: 80
-    
-  #HTTPSPort:
-  #  Type: Number
-  #  Default: 443
-  
-  #AppSource:
-  #  Type: String
-  #  Default: https://elasticbeanstalk-platform-assets-ap-northeast-1.s3.ap-northeast-1.amazonaws.com/stalks/eb_python311_amazon_linux_2023_1.0.306.0_20230727192134/sampleapp/EBSampleApp-Python.zip
-  
+
   BatchSizeType:
     Type: String
     Default: Fixed
@@ -36,14 +28,9 @@ Parameters:
   EnvironmentType:
     Type: String
     Default: LoadBalanced
-    
-  #InstanceCapacity:
-  #  Type: Number
-  #  Default: 2
-  
+
   InstanceType:
     Type: String
-    #Default: t3.nano
     Default: t4g.nano
     
   InstanceArchitecture:
@@ -129,7 +116,6 @@ Resources:
         ProjectEnvironmentComputeType: !Ref ProjectEnvironmentComputeType
         ProjectEnvironmentImage: !Ref ProjectEnvironmentImage
         ProjectEnvironmentType: !Ref ProjectEnvironmentType
-        #Secret: !GetAtt SecretsManagerStack.Outputs.Secret
         SourceBundleName1: !Ref SourceBundleName1
         SourceBundleName2: !Ref SourceBundleName2
         SourceFileName: !Ref SourceFileName
@@ -142,11 +128,7 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
       Parameters:
         Architecture: !Ref LambdaArchitecture
-        #BucketArn: !GetAtt S3Stack.Outputs.BucketArn
-        #BucketName: !GetAtt S3Stack.Outputs.BucketName
         CodeBuildProject: !GetAtt CodeStack.Outputs.CodeBuildProject
-        #CodeBuildProject1: !GetAtt CodeStack.Outputs.CodeBuildProject1
-        #CodeBuildProject2: !GetAtt CodeStack.Outputs.CodeBuildProject2
         EventBusName: default
         Handler: !Ref LambdaHandler
         Prefix: !Ref Prefix
@@ -160,29 +142,13 @@ Resources:
       Parameters:
         AvailabilityZone1: a
         AvailabilityZone2: c
-        #AvailabilityZone3: d
         CidrIp1: 10.0.1.0/24
         CidrIp2: 10.0.2.0/24
         CidrIp3: 10.0.3.0/24
         CidrIp4: 10.0.4.0/24
         HTTPPort: !Ref HTTPPort
-        #HTTPSPort: !Ref HTTPSPort
         Prefix: !Ref Prefix
         VPCCidrBlock: 10.0.0.0/16
-        
-  #EndpointStack:
-  #  Type: AWS::CloudFormation::Stack
-  #  DependsOn:
-  #    - VPCStack
-  #  Properties:
-  #    TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-endpoint.yaml"
-  #    Parameters:
-  #      #EndpointSecurityGroup: !GetAtt VPCStack.Outputs.EndpointSecurityGroup
-  #      Prefix: !Ref Prefix
-  #      #PrivateRouteTable: !GetAtt VPCStack.Outputs.PrivateRouteTable
-  #      PrivateSubnet1: !GetAtt VPCStack.Outputs.PrivateSubnet1
-  #      PrivateSubnet2: !GetAtt VPCStack.Outputs.PrivateSubnet2
-  #      VPC: !GetAtt VPCStack.Outputs.VPC
 
   ElasticBeanstalkStack:
     Type: AWS::CloudFormation::Stack
@@ -192,17 +158,12 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-eb.yaml"
       Parameters:
-        #ALBSecurityGroup: !GetAtt VPCStack.Outputs.ALBSecurityGroup
-        #AppSource: !Ref AppSource
         BatchSizeType: !Ref BatchSizeType
         BatchSize: !Ref BatchSize
         BucketName: !GetAtt S3Stack.Outputs.BucketName
         DeploymentPolicy: !Ref DeploymentPolicy
         EnvironmentType: !Ref EnvironmentType
-        #InstanceSecurityGroup: !GetAtt VPCStack.Outputs.InstanceSecurityGroup
-        #InstanceCapacity: !Ref InstanceCapacity
         InstanceArchitecture: !Ref InstanceArchitecture
-        #InstanceSecurityGroup: !GetAtt VPCStack.Outputs.InstanceSecurityGroup
         InstanceType: !Ref InstanceType
         LoadBalancerType: !Ref LoadBalancerType
         MaxSize: !Ref MaxSize
@@ -216,4 +177,3 @@ Resources:
         SourceBundleName1: !Ref SourceBundleName1
         SourceBundleName2: !Ref SourceBundleName2
         VPC: !GetAtt VPCStack.Outputs.VPC
-        #WaitCondition: !GetAtt LambdaStack.Outputs.WaitCondition
