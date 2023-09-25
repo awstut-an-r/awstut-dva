@@ -17,116 +17,11 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Ref Prefix
-      #LifecycleConfiguration:
-      #  Rules:
-      #    - NoncurrentVersionExpirationInDays: 30
-      #      Status: Enabled
-      #VersioningConfiguration:
-      #  Status: Enabled
       NotificationConfiguration:
         EventBridgeConfiguration: 
           EventBridgeEnabled: true
-          
-  #CustomResource2:
-  #  Type: Custom::CustomResource
-  #  Properties:
-  #    ServiceToken: !GetAtt Function3.Arn
-  #    
-  #Function3:
-  #  Type: AWS::Lambda::Function
-  #  Properties:
-  #    Code:
-  #      ZipFile: |
-  #        import boto3
-  #        import cfnresponse
-  #        import os
-  #        
-  #        bucket_name = os.environ['BUCKET_NAME']
-  #        
-  #        #object_name = 'index.html'
-  #        #object_body = """<html>
-  #        #  <head></head>
-  #        #  <body>
-  #        #    <h1>index.html</h1>
-  #        #    <p>{bucket_name}</p>
-  #        #  </body>
-  #        #</html>""".format(bucket_name=bucket_name)
-  #        #content_type = 'text/html'
-  #        #char_code= 'utf-8'
-  #        
-  #        s3_client = boto3.client('s3')
-  #         
-  #        #CREATE = 'Create'
-  #        DELETE = 'Delete'
-  #        response_data = {}
-  #        
-  #        def lambda_handler(event, context):
-  #          try:
-  #            #if event['RequestType'] == CREATE:
-  #            #  put_response = s3_client.put_object(
-  #            #    Bucket=bucket_name,
-  #            #    Key=object_name,
-  #            #    Body=object_body.encode(char_code),
-  #            #    ContentEncoding=char_code,
-  #            #    ContentType=content_type)
-  #            #  print(put_response)
-  #            #
-  #            #elif event['RequestType'] == DELETE:
-  #            
-  #            if event['RequestType'] == DELETE:
-  #              list_response = s3_client.list_objects_v2(
-  #                Bucket=bucket_name)
-  #              for obj in list_response['Contents']:
-  #                delete_response = s3_client.delete_object(
-  #                  Bucket=bucket_name,
-  #                  Key=obj['Key'])
-  #                print(delete_response)
-  #            
-  #            cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
-  #            
-  #          except Exception as e:
-  #            print(e)
-  #            cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
-  #    Environment:
-  #      Variables:
-  #        BUCKET_NAME: !Ref Bucket
-  #    FunctionName: !Sub "${Prefix}-function-03"
-  #    Handler: !Ref Handler
-  #    Runtime: !Ref Runtime
-  #    Role: !GetAtt FunctionRole3.Arn
-#
-  #FunctionRole3:
-  #  Type: AWS::IAM::Role
-  #  DeletionPolicy: Delete
-  #  Properties:
-  #    AssumeRolePolicyDocument:
-  #      Version: 2012-10-17
-  #      Statement:
-  #        - Effect: Allow
-  #          Action: sts:AssumeRole
-  #          Principal:
-  #            Service:
-  #              - lambda.amazonaws.com
-  #    ManagedPolicyArns:
-  #      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  #    Policies:
-  #      - PolicyName: !Sub "${Prefix}-DeleteS3Objects"
-  #        PolicyDocument:
-  #          Version: 2012-10-17
-  #          Statement:
-  #            - Effect: Allow
-  #              Action:
-  #                - s3:ListBucket
-  #                - s3:GetObject
-  #                #- s3:PutObject
-  #                - s3:DeleteObject
-  #              Resource:
-  #                - !Sub "arn:aws:s3:::${Bucket}"
-  #                - !Sub "arn:aws:s3:::${Bucket}/*"
+
 
 Outputs:
-  #BucketArn:
-  #  Value: !GetAtt Bucket.Arn
-    
   BucketName:
     Value: !Ref Bucket
