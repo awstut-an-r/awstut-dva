@@ -17,9 +17,6 @@ Resources:
     Properties:
       AccessControl: Private
       BucketName: !Ref Prefix
-      NotificationConfiguration:
-        EventBridgeConfiguration: 
-          EventBridgeEnabled: true
 
 
 Outputs:
