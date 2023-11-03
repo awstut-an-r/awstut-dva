@@ -18,17 +18,6 @@ Parameters:
 
 
 Resources:
-  #EIP:
-  #  Type: AWS::EC2::EIP
-  #  Properties:
-  #    Domain: vpc
-  #    
-  #EIPAssociation:
-  #  Type: AWS::EC2::EIPAssociation
-  #  Properties:
-  #    AllocationId: !GetAtt EIP.AllocationId
-  #    InstanceId: !Ref Instance
-      
   Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -41,14 +30,7 @@ Resources:
           SubnetId: !Ref PublicSubnet
           GroupSet:
             - !Ref InstanceSecurityGroup
-      #UserData: !Base64 |
-      #  #!/bin/bash -xe
-      #  yum update -y
-      #  yum install -y httpd
-      #  systemctl start httpd
-      #  systemctl enable httpd
-      #  ec2-metadata -i > /var/www/html/index.html
-            
+
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -67,33 +49,5 @@ Resources:
             Principal:
               Service:
                 - ec2.amazonaws.com
-      #Policies:
-      #  - PolicyName: SSMStateManagerPolicy
-      #    PolicyDocument:
-      #      Version: 2012-10-17
-      #      Statement:
-      #        - Effect: Allow
-      #          Action:
-      #            - s3:GetObject
-      #            - s3:PutObject
-      #            - s3:PutObjectAcl
-      #            - s3:ListBucket
-      #          Resource:
-      #            - !Sub
-      #              - ${S3Bucket}
-      #              - S3Bucket:
-      #                  Fn::ImportValue: !Sub ${Prefix}-S3BucketArn
-      #            - !Sub
-      #              - ${S3Bucket}/*
-      #              - S3Bucket:
-      #                  Fn::ImportValue: !Sub ${Prefix}-S3BucketArn
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-            
-            
-#Outputs:
-#  #Instance:
-#  #  Value: !Ref Instance
-#      
-#  InstancePublicDnsName:
-#    Value: !GetAtt Instance.PublicDnsName
