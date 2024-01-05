@@ -12,15 +12,8 @@ Resources:
   User:
     Type: AWS::IAM::User
     Properties:
-      #Groups: 
-      #  - String
       LoginProfile: 
         Password: !Ref Password
-        #PasswordResetRequired: Boolean
-      #ManagedPolicyArns: 
-      #  - String
-      #Path: String
-      #PermissionsBoundary: String
       Policies: 
         - PolicyName: OpenSearchServerlessUserPolicy
           PolicyDocument:
@@ -28,12 +21,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- aoss:APIAccessAll
-                  #- aoss:DashboardsAccessAll
                   - aoss:*
                 Resource: "*"
-      #Tags: 
-      #  - Tag
       UserName: !Sub "${Prefix}-user"
 
   FunctionRole2:
@@ -57,11 +46,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- aoss:*
                   - aoss:APIAccessAll
-                  #- aoss:BatchGetCollection
-                  #- aoss:APIAccessAll
-                #Resource: "*"
                 Resource:
                   - !Sub "arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/*"
       RoleName: !Sub "${Prefix}-FunctionRole2"
@@ -85,10 +70,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- aoss:*
                   - aoss:APIAccessAll
-                  #- aoss:BatchGetCollection
-                  #- aoss:APIAccessAll
                 Resource:
                   - !Sub "arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/*"
               - Effect: Allow
@@ -99,18 +81,9 @@ Resources:
 
 
 Outputs:
-  #User1:
-  #  Value: User1
-  #  
-  #User2:
-  #  Value: User2
-  
   UserArn:
     Value: !GetAtt User.Arn
-    
-  #User2Arn:
-  #  Value: !GetAtt User2.Arn
-  
+
   FunctionRoleArn2:
     Value: !GetAtt FunctionRole2.Arn
     
