@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  Handler:
+    Type: String
+    
+  #KinesisDataStreamArn:
+  #  Type: String
+    
+  KinesisDataStreamName:
+    Type: String
+
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  Timeout:
+    Type: Number
+    
+
+Resources:
+  DataSourceLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+        ZipFile: |
+          import boto3
+          import datetime
+          import json
+          import os
+          import random
+          
+          STREAM_NAME = os.environ['KINESIS_STREAM_NAME']
+          LIMIT = 10
+          
+          def get_data():
+            return {
+              'EVENT_TIME': datetime.datetime.now().isoformat(),
+              'TICKER': random.choice(['AAPL', 'AMZN', 'MSFT', 'INTC', 'TBV']),
+              'PRICE': round(random.random() * 100, 2)}
+          
+          def generate(stream_name, kinesis_client, limit):
+            for i in range(limit):
+              data = get_data()
+              print(data)
+              kinesis_client.put_record(
+                StreamName=stream_name,
+                Data=json.dumps(data).encode('utf-8'),
+                PartitionKey="partitionkey")
+        
+          def lambda_handler(event, context):
+            generate(STREAM_NAME, boto3.client('kinesis'), LIMIT)
+      Environment:
+        Variables:
+          KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+      Handler: !Ref Handler
+      Role: !GetAtt DataSourceLambdaRole.Arn
+      Runtime: !Ref Runtime
+      Timeout: !Ref Timeout
+            
+  DataSourceLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      #ManagedPolicyArns:
+      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      Policies:
+        - PolicyName: DataSourceLambdaPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kinesis:PutRecord
+                Resource:
+                  #- !Ref KinesisDataStreamArn
+                  - !Sub "arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/${KinesisDataStreamName}"
