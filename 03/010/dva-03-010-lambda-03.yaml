@@ -58,6 +58,7 @@ Resources:
       Environment:
         Variables:
           KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+      FunctionName: !Sub "${Prefix}-function-03"
       Handler: !Ref Handler
       Role: !GetAtt DataSourceLambdaRole.Arn
       Runtime: !Ref Runtime
