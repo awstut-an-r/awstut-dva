@@ -64,7 +64,6 @@ Resources:
       Environment:
         Variables:
           KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
       Handler: !Ref Handler
       Role: !GetAtt DataSourceLambdaRole.Arn
       Runtime: !Ref Runtime
@@ -81,11 +80,6 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-      #ManagedPolicyArns:
-      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
-      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       Policies:
         - PolicyName: DataSourceLambdaPolicy
           PolicyDocument:
@@ -101,4 +95,3 @@ Resources:
                   - kinesis:PutRecord
                 Resource:
                   - !Ref KinesisDataStreamArn
-      
