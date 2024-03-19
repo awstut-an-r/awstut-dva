@@ -9,14 +9,10 @@ Resources:
   Key:
     Type: AWS::KMS::Key
     Properties:
-      #BypassPolicyLockoutSafetyCheck: Boolean
-      #Description: String
       Enabled: true
-      #EnableKeyRotation: Boolean
       KeyPolicy:
         Version: 2012-10-17
-        #Id: !Sub "${Prefix}-cmk"
-        Id: !Ref Prefix
+        Id: !Sub "${Prefix}-cmk"
         Statement:
           - Effect: Allow
             Principal:
@@ -39,19 +35,9 @@ Resources:
             Resource: "*"
       KeySpec: SYMMETRIC_DEFAULT
       KeyUsage: ENCRYPT_DECRYPT
-      #MultiRegion: Boolean
       Origin: AWS_KMS
-      PendingWindowInDays: 7
-      #Tags: 
-      #  - Tag
 
 
 Outputs:
-  #BucketName:
-  #  Value: !Ref Bucket
-  
-  #BucketArn:
-  #  Value: !GetAtt Bucket.Arn
-  
   KeyArn:
     Value: !GetAtt Key.Arn
