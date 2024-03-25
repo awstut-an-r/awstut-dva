@@ -4,15 +4,18 @@ Parameters:
   BucketArn:
     Type: String
 
-  KeyArn:
-    Type: String
-  
   KinesisFirehoseDeliveryStreamName:
+    Type: String
+    
+  KinesisKeyArn:
     Type: String
 
   Prefix:
     Type: String
 
+  S3KeyArn:
+    Type: String
+  
   ShardCount:
     Type: Number
     
@@ -26,7 +29,7 @@ Resources:
       ShardCount: !Ref ShardCount
       StreamEncryption: 
         EncryptionType: KMS
-        KeyId: !Ref KeyArn
+        KeyId: !Ref KinesisKeyArn
       
   KinesisFirehoseDeliveryStream:
     Type: AWS::KinesisFirehose::DeliveryStream
@@ -43,6 +46,9 @@ Resources:
           LogGroupName: !Ref LogGroup
           LogStreamName: !Ref LogStream
         CompressionFormat: UNCOMPRESSED
+        EncryptionConfiguration: 
+          KMSEncryptionConfig: 
+            AWSKMSKeyARN: !Ref S3KeyArn
         Prefix: firehose/
         RoleARN: !GetAtt KinesisS3DestinationRole.Arn
         
@@ -62,7 +68,7 @@ Resources:
     DeletionPolicy: Delete
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Action: sts:AssumeRole
@@ -78,7 +84,7 @@ Resources:
                 Action:
                   - kms:Decrypt
                 Resource:
-                  - !Ref KeyArn
+                  - !Ref KinesisKeyArn
               - Effect: Allow
                 Action:
                   - kinesis:DescribeStream
@@ -87,13 +93,13 @@ Resources:
                   - kinesis:ListShards
                 Resource:
                   - !GetAtt KinesisDataStream.Arn
-      
+
   KinesisS3DestinationRole:
     Type: AWS::IAM::Role
     DeletionPolicy: Delete
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Action: sts:AssumeRole
