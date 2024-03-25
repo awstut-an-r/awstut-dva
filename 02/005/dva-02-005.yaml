@@ -54,9 +54,10 @@ Resources:
       TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-kinesis.yaml"
       Parameters:
         BucketArn: !GetAtt S3Stack.Outputs.BucketArn
-        KeyArn: !GetAtt KMSStack.Outputs.KeyArn
         KinesisFirehoseDeliveryStreamName: !Sub "${Prefix}-FirehoseDeliveryStream"
+        KinesisKeyArn: !GetAtt KMSStack.Outputs.KinesisKeyArn
         Prefix: !Ref Prefix
+        S3KeyArn: !GetAtt KMSStack.Outputs.S3KeyArn
         ShardCount: !Ref KinesisShardCount
 
   LambdaStack:
@@ -68,9 +69,9 @@ Resources:
       Parameters:
         Architecture: !Ref LambdaArchitecture
         Handler: !Ref LambdaHandler
-        KeyArn: !GetAtt KMSStack.Outputs.KeyArn
         KinesisDataStreamArn: !GetAtt KinesisStack.Outputs.KinesisDataStreamArn
         KinesisDataStreamName: !GetAtt KinesisStack.Outputs.KinesisDataStreamName
+        KinesisKeyArn: !GetAtt KMSStack.Outputs.KinesisKeyArn
         Prefix: !Ref Prefix
         Runtime: !Ref LambdaRuntime
         Timeout: !Ref LambdaTimeout
