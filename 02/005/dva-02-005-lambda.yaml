@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
   Architecture:
@@ -7,15 +7,15 @@ Parameters:
   Handler:
     Type: String
     
-  KeyArn:
-    Type: String
-    
   KinesisDataStreamArn:
     Type: String
     
   KinesisDataStreamName:
     Type: String
 
+  KinesisKeyArn:
+    Type: String
+    
   Prefix:
     Type: String
     
@@ -73,7 +73,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Action: sts:AssumeRole
@@ -89,7 +89,7 @@ Resources:
                 Action:
                   - kms:GenerateDataKey
                 Resource:
-                  - !Ref KeyArn
+                  - !Ref KinesisKeyArn
               - Effect: Allow
                 Action:
                   - kinesis:PutRecord
