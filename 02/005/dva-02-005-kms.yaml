@@ -6,13 +6,13 @@ Parameters:
     
 
 Resources:
-  Key:
+  KinesisKey:
     Type: AWS::KMS::Key
     Properties:
       Enabled: true
       KeyPolicy:
         Version: 2012-10-17
-        Id: !Sub "${Prefix}-cmk"
+        Id: !Sub "${Prefix}-kinesis"
         Statement:
           - Effect: Allow
             Principal:
@@ -26,8 +26,39 @@ Resources:
             Resource: "*"
             Condition:
               StringEquals:
-                kms:ViaService: !Sub "kinesis.${AWS::Region}.amazonaws.com"
                 kms:CallerAccount: !Ref AWS::AccountId
+                kms:ViaService: !Sub "kinesis.${AWS::Region}.amazonaws.com"
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "*"
+            Resource: "*"
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      Origin: AWS_KMS
+      
+  S3Key:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Sub "${Prefix}-s3"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+                kms:ViaService: !Sub "s3.${AWS::Region}.amazonaws.com"
           - Effect: Allow
             Principal:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
@@ -39,5 +70,8 @@ Resources:
 
 
 Outputs:
-  KeyArn:
-    Value: !GetAtt Key.Arn
+  KinesisKeyArn:
+    Value: !GetAtt KinesisKey.Arn
+    
+  S3KeyArn:
+    Value: !GetAtt S3Key.Arn
