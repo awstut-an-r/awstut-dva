@@ -82,11 +82,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - kms:Decrypt
-                Resource:
-                  - !Ref KinesisKeyArn
-              - Effect: Allow
-                Action:
                   - kinesis:DescribeStream
                   - kinesis:GetShardIterator
                   - kinesis:GetRecords
