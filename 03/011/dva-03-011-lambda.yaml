@@ -67,7 +67,6 @@ Resources:
       Environment:
         Variables:
           KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
       FunctionName: !Sub "${Prefix}-function-01"
       Handler: !Ref Handler
       Role: !GetAtt FunctionRole1.Arn
@@ -86,11 +85,6 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-      #ManagedPolicyArns:
-      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
-      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       Policies:
         - PolicyName: FunctionRolePolicy1
           PolicyDocument:
@@ -108,7 +102,6 @@ Resources:
       Architectures:
         - !Ref Architecture
       Code:
-        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
         ZipFile: |
           import base64
           import boto3
@@ -142,8 +135,6 @@ Resources:
       Environment:
         Variables:
           KINESIS_FIREHOSE_DELIVERY_STREAM_NAME: !Ref KinesisFirehoseDeliveryStreamName
-          #KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
       FunctionName: !Sub "${Prefix}-function-02"
       Handler: !Ref Handler
       Role: !GetAtt FunctionRole2.Arn
@@ -163,7 +154,6 @@ Resources:
               Service:
                 - lambda.amazonaws.com
       ManagedPolicyArns:
-        #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       Policies:
         - PolicyName: FunctionRolePolicy2
@@ -172,42 +162,15 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  #- kinesis:PutRecord
                   - firehose:PutRecord
                 Resource:
-                  #- !Ref KinesisDataStreamArn
                   - !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/${KinesisFirehoseDeliveryStreamName}"
         
   EventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Properties: 
-      #AmazonManagedKafkaEventSourceConfig: 
-      #  AmazonManagedKafkaEventSourceConfig
       BatchSize: !Ref BatchSize
-      #BisectBatchOnFunctionError: Boolean
-      #DestinationConfig: 
-      #  DestinationConfig
       Enabled: true
       EventSourceArn: !Ref KinesisDataStreamArn
-      #FilterCriteria: 
-      #  FilterCriteria
       FunctionName: !Ref Function2
-      #FunctionResponseTypes: 
-      #  - String
-      #MaximumBatchingWindowInSeconds: Integer
-      #MaximumRecordAgeInSeconds: Integer
-      #MaximumRetryAttempts: Integer
-      #ParallelizationFactor: Integer
-      #Queues: 
-      #  - String
-      #SelfManagedEventSource: 
-      #  SelfManagedEventSource
-      #SelfManagedKafkaEventSourceConfig: 
-      #  SelfManagedKafkaEventSourceConfig
-      #SourceAccessConfigurations: 
-      #  - SourceAccessConfiguration
       StartingPosition: LATEST
-      #StartingPositionTimestamp: Double
-      #Topics: 
-      #  - String
-      #TumblingWindowInSeconds: Integer
