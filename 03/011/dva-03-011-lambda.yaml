@@ -114,7 +114,7 @@ Resources:
           firehose_client = boto3.client('firehose')
           
           def lambda_handler(event, context):
-            print(event)
+            #print(event)
             
             for record in event['Records']:
               record_data = json.loads(base64.b64decode(record['kinesis']['data']).decode('utf-8'))
