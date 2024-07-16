@@ -51,7 +51,6 @@ Resources:
         Prefix: !Ref Prefix
         ShardCount: !Ref KinesisShardCount
   
-
   LambdaStack:
     Type: AWS::CloudFormation::Stack
     Properties:
