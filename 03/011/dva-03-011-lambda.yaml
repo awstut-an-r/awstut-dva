@@ -1,0 +1,213 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  BatchSize:
+    Type: Number
+    
+  Handler:
+    Type: String
+    
+  KinesisDataStreamArn:
+    Type: String
+    
+  KinesisDataStreamName:
+    Type: String
+    
+  KinesisFirehoseDeliveryStreamName:
+    Type: String
+
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  Timeout:
+    Type: Number
+    
+
+Resources:
+  Function1:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+        ZipFile: |
+          import boto3
+          import datetime
+          import json
+          import os
+          import random
+          
+          STREAM_NAME = os.environ['KINESIS_STREAM_NAME']
+          LIMIT = 5
+          
+          def get_data():
+            return {
+              'EVENT_TIME': datetime.datetime.now().isoformat(),
+              'TICKER': random.choice(['AAPL', 'AMZN', 'MSFT', 'INTC', 'TBV']),
+              'PRICE': round(random.random() * 100, 2)}
+          
+          def generate(stream_name, kinesis_client, limit):
+            for i in range(limit):
+              data = get_data()
+              print(data)
+              kinesis_client.put_record(
+                StreamName=stream_name,
+                Data=json.dumps(data).encode('utf-8'),
+                PartitionKey="partitionkey")
+        
+          def lambda_handler(event, context):
+            generate(STREAM_NAME, boto3.client('kinesis'), LIMIT)
+      Environment:
+        Variables:
+          KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+      FunctionName: !Sub "${Prefix}-function-01"
+      Handler: !Ref Handler
+      Role: !GetAtt FunctionRole1.Arn
+      Runtime: !Ref Runtime
+      Timeout: !Ref Timeout
+            
+  FunctionRole1:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      #ManagedPolicyArns:
+      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      Policies:
+        - PolicyName: FunctionRolePolicy1
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kinesis:PutRecord
+                Resource:
+                  - !Ref KinesisDataStreamArn
+      
+  Function2:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+        ZipFile: |
+          import base64
+          import boto3
+          import datetime
+          import json
+          import os
+          
+          firehose_delivery_stream = os.environ['KINESIS_FIREHOSE_DELIVERY_STREAM_NAME']
+          
+          firehose_client = boto3.client('firehose')
+          
+          def lambda_handler(event, context):
+            print(event)
+            
+            for record in event['Records']:
+              record_data = json.loads(base64.b64decode(record['kinesis']['data']).decode('utf-8'))
+              #print(record_data)
+              
+              event_time = record_data['EVENT_TIME']
+              record_data['UNIX_TIME'] = datetime.datetime.fromisoformat(event_time).timestamp()
+              #print(json.dumps(record_data))
+              
+              response = firehose_client.put_record(
+                DeliveryStreamName=firehose_delivery_stream,
+                Record={
+                    #'Data': b'bytes'
+                    'Data': json.dumps(record_data).encode()+'\n'
+                }
+              )
+              print(response)
+      Environment:
+        Variables:
+          KINESIS_FIREHOSE_DELIVERY_STREAM_NAME: !Ref KinesisFirehoseDeliveryStreamName
+          #KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+          #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+      FunctionName: !Sub "${Prefix}-function-02"
+      Handler: !Ref Handler
+      Role: !GetAtt FunctionRole2.Arn
+      Runtime: !Ref Runtime
+      Timeout: !Ref Timeout
+      
+  FunctionRole2:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      Policies:
+        - PolicyName: FunctionRolePolicy2
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  #- kinesis:PutRecord
+                  - firehose:PutRecord
+                Resource:
+                  #- !Ref KinesisDataStreamArn
+                  - !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/${KinesisFirehoseDeliveryStreamName}"
+        
+  EventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties: 
+      #AmazonManagedKafkaEventSourceConfig: 
+      #  AmazonManagedKafkaEventSourceConfig
+      BatchSize: !Ref BatchSize
+      #BisectBatchOnFunctionError: Boolean
+      #DestinationConfig: 
+      #  DestinationConfig
+      Enabled: true
+      EventSourceArn: !Ref KinesisDataStreamArn
+      #FilterCriteria: 
+      #  FilterCriteria
+      FunctionName: !Ref Function2
+      #FunctionResponseTypes: 
+      #  - String
+      #MaximumBatchingWindowInSeconds: Integer
+      #MaximumRecordAgeInSeconds: Integer
+      #MaximumRetryAttempts: Integer
+      #ParallelizationFactor: Integer
+      #Queues: 
+      #  - String
+      #SelfManagedEventSource: 
+      #  SelfManagedEventSource
+      #SelfManagedKafkaEventSourceConfig: 
+      #  SelfManagedKafkaEventSourceConfig
+      #SourceAccessConfigurations: 
+      #  - SourceAccessConfiguration
+      StartingPosition: LATEST
+      #StartingPositionTimestamp: Double
+      #Topics: 
+      #  - String
+      #TumblingWindowInSeconds: Integer
