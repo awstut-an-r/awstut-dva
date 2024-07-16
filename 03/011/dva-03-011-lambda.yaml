@@ -127,8 +127,7 @@ Resources:
               response = firehose_client.put_record(
                 DeliveryStreamName=firehose_delivery_stream,
                 Record={
-                    #'Data': b'bytes'
-                    'Data': json.dumps(record_data).encode()+'\n'
+                    'Data': (json.dumps(record_data) + '\n').encode()
                 }
               )
               print(response)
