@@ -3,10 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   Architecture:
     Type: String
-    
-  #BatchSize:
-  #  Type: Number
-    
+
   Handler:
     Type: String
     
@@ -21,25 +18,13 @@ Parameters:
     
   ImageUrl:
     Type: String
-    
-  #KinesisDataStreamArn:
-  #  Type: String
-  #  
-  #KinesisDataStreamName:
-  #  Type: String
-  #  
-  #KinesisFirehoseDeliveryStreamName:
-  #  Type: String
 
   Prefix:
     Type: String
     
   Runtime:
     Type: String
-    
-  #Timeout:
-  #  Type: Number
-    
+
 
 Resources:
   ImageBucketCustomResource1:
@@ -47,7 +32,6 @@ Resources:
     Properties:
       BucketName: !Ref ImageBucket1
       ImageUrl: !Ref ImageUrl
-      #ServiceToken: !GetAtt Function.Arn
       ServiceToken: !GetAtt PutImageFunction.Arn
       
   ImageBucketCustomResource2:
@@ -55,7 +39,6 @@ Resources:
     Properties:
       BucketName: !Ref ImageBucket2
       ImageUrl: !Ref ImageUrl
-      #ServiceToken: !GetAtt Function.Arn
       ServiceToken: !GetAtt PutImageFunction.Arn
   
   PutImageFunction:
@@ -64,7 +47,6 @@ Resources:
       Architectures:
         - !Ref Architecture
       Code:
-        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
         ZipFile: |
           import boto3
           import cfnresponse
@@ -84,14 +66,9 @@ Resources:
               s3_key = image_url.split('/')[-1]
               
               if event['RequestType'] == CREATE:
-                #print(s3_bucket)
-                #print(image_url)
-                #print(s3_key)
-                
                 response = urllib.request.urlopen(image_url)
                 image_data = response.read()
-                
-                #response = s3_client.put_object(Bucket=s3_bucket, Key=s3_key, Body=image_data)
+
                 response = s3_client.put_object(
                   Bucket=s3_bucket,
                   Key=s3_key,
@@ -114,15 +91,10 @@ Resources:
             except Exception as e:
               print(e)
               cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
-      #Environment:
-      #  Variables:
-      #    KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-      #    #  Fn::ImportValue: !Sub ${Prefix}-DataStream
       FunctionName: !Sub "${Prefix}-put-image-function"
       Handler: !Ref Handler
       Role: !GetAtt PutImageFunctionRole.Arn
       Runtime: !Ref Runtime
-      #Timeout: !Ref Timeout
 
   PutImageFunctionRole:
     Type: AWS::IAM::Role
@@ -138,9 +110,6 @@ Resources:
                 - lambda.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
-      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
-      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
       Policies:
         - PolicyName: PutImageFunctionPolicy
           PolicyDocument:
@@ -165,7 +134,6 @@ Resources:
       ImageBucketName1: !Ref ImageBucket1
       ImageBucketName2: !Ref ImageBucket2
       ImageUrl: !Ref ImageUrl
-      #ServiceToken: !GetAtt Function.Arn
       ServiceToken: !GetAtt PutHtmlFunction.Arn
                   
   PutHtmlFunction:
@@ -174,7 +142,6 @@ Resources:
       Architectures:
         - !Ref Architecture
       Code:
-        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
         ZipFile: |
           import boto3
           import cfnresponse
@@ -186,14 +153,7 @@ Resources:
             <body>
               <h1>index.html</h1>
               <h2>$html_bucket</h2>
-              
-              <!--
-              <img src="https://$image_bucket1.s3.amazonaws.com/$image_name" />
-              <img src="https://$image_bucket2.s3.amazonaws.com/$image_name" />
-              <img src="https://$image_bucket1.s3.ap-northeast-1.amazonaws.com/$image_name" />
-              <img src="https://$image_bucket2.s3.ap-northeast-1.amazonaws.com/$image_name" />
-              -->
-              
+
               <h3>$image_bucket1</h3>
               <div id="svg-container1"></div>
               
@@ -208,7 +168,6 @@ Resources:
                     svgContainer1.innerHTML = svgContent;
                   })
                   .catch(error => {
-                    //console.error('Error occur during loading svg.', error);
                     const errorMessage = document.createElement('p');
                     errorMessage.textContent = 'Error occur during loading svg from $image_bucket1.';
                     svgContainer1.appendChild(errorMessage);
@@ -221,7 +180,6 @@ Resources:
                     svgContainer2.innerHTML = svgContent;
                   })
                   .catch(error => {
-                    //console.error('Error occur during loading svg.', error);
                     const errorMessage = document.createElement('p');
                     errorMessage.textContent = 'Error occur during loading svg from $image_bucket2.';
                     svgContainer1.appendChild(errorMessage);
@@ -239,8 +197,6 @@ Resources:
           response_data = {}
           
           def lambda_handler(event, context):
-            #print('hogehogehoge')
-          
             try:
               s3_html_bucket = event['ResourceProperties']['HtmlBucketName']
               s3_image_bucket1 = event['ResourceProperties']['ImageBucketName1']
@@ -249,26 +205,13 @@ Resources:
               s3_key = image_url.split('/')[-1]
               
               if event['RequestType'] == CREATE:
-                print(s3_html_bucket)
-                print(s3_image_bucket1)
-                print(s3_image_bucket2)
-                print(image_url)
-                print(s3_key)
-                
-                #body = object_body.format(
-                #  html_bucket=s3_html_bucket,
-                #  image_bucket1=s3_image_bucket1,
-                #  image_bucket2=s3_image_bucket2,
-                #  image_name=s3_key
-                #)
                 body = object_body.substitute(
                   html_bucket=s3_html_bucket,
                   image_bucket1=s3_image_bucket1,
                   image_bucket2=s3_image_bucket2,
                   image_name=s3_key
                   )
-                print(body)
-                
+
                 put_response = s3_client.put_object(
                   Bucket=s3_html_bucket,
                   Key=object_name,
@@ -292,10 +235,6 @@ Resources:
             except Exception as e:
               print(e)
               cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
-      #Environment:
-      #  Variables:
-      #    KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-      #    #  Fn::ImportValue: !Sub ${Prefix}-DataStream
       FunctionName: !Sub "${Prefix}-put-html-function"
       Handler: !Ref Handler
       Role: !GetAtt PutHtmlFunctionRole.Arn
@@ -329,113 +268,3 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::${HtmlBucket}"
                   - !Sub "arn:aws:s3:::${HtmlBucket}/*"
-      
-  #Function2:
-  #  Type: AWS::Lambda::Function
-  #  Properties:
-  #    Architectures:
-  #      - !Ref Architecture
-  #    Code:
-  #      # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
-  #      ZipFile: |
-  #        import base64
-  #        import boto3
-  #        import datetime
-  #        import json
-  #        import os
-  #        
-  #        firehose_delivery_stream = os.environ['KINESIS_FIREHOSE_DELIVERY_STREAM_NAME']
-  #        
-  #        firehose_client = boto3.client('firehose')
-  #        
-  #        def lambda_handler(event, context):
-  #          print(event)
-  #          
-  #          for record in event['Records']:
-  #            record_data = json.loads(base64.b64decode(record['kinesis']['data']).decode('utf-8'))
-  #            #print(record_data)
-  #            
-  #            event_time = record_data['EVENT_TIME']
-  #            record_data['UNIX_TIME'] = datetime.datetime.fromisoformat(event_time).timestamp()
-  #            #print(json.dumps(record_data))
-  #            
-  #            response = firehose_client.put_record(
-  #              DeliveryStreamName=firehose_delivery_stream,
-  #              Record={
-  #                  #'Data': b'bytes'
-  #                  'Data': (json.dumps(record_data) + '\n').encode()
-  #              }
-  #            )
-  #            print(response)
-  #    Environment:
-  #      Variables:
-  #        KINESIS_FIREHOSE_DELIVERY_STREAM_NAME: !Ref KinesisFirehoseDeliveryStreamName
-  #        #KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
-  #        #  Fn::ImportValue: !Sub ${Prefix}-DataStream
-  #    FunctionName: !Sub "${Prefix}-function-02"
-  #    Handler: !Ref Handler
-  #    Role: !GetAtt FunctionRole2.Arn
-  #    Runtime: !Ref Runtime
-  #    Timeout: !Ref Timeout
-  #    
-  #FunctionRole2:
-  #  Type: AWS::IAM::Role
-  #  DeletionPolicy: Delete
-  #  Properties:
-  #    AssumeRolePolicyDocument:
-  #      Version: "2012-10-17"
-  #      Statement:
-  #        - Effect: Allow
-  #          Action: sts:AssumeRole
-  #          Principal:
-  #            Service:
-  #              - lambda.amazonaws.com
-  #    ManagedPolicyArns:
-  #      #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-  #      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
-  #    Policies:
-  #      - PolicyName: FunctionRolePolicy2
-  #        PolicyDocument:
-  #          Version: 2012-10-17
-  #          Statement:
-  #            - Effect: Allow
-  #              Action:
-  #                #- kinesis:PutRecord
-  #                - firehose:PutRecord
-  #              Resource:
-  #                #- !Ref KinesisDataStreamArn
-  #                - !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/${KinesisFirehoseDeliveryStreamName}"
-  #      
-  #EventSourceMapping:
-  #  Type: AWS::Lambda::EventSourceMapping
-  #  Properties: 
-  #    #AmazonManagedKafkaEventSourceConfig: 
-  #    #  AmazonManagedKafkaEventSourceConfig
-  #    BatchSize: !Ref BatchSize
-  #    #BisectBatchOnFunctionError: Boolean
-  #    #DestinationConfig: 
-  #    #  DestinationConfig
-  #    Enabled: true
-  #    EventSourceArn: !Ref KinesisDataStreamArn
-  #    #FilterCriteria: 
-  #    #  FilterCriteria
-  #    FunctionName: !Ref Function2
-  #    #FunctionResponseTypes: 
-  #    #  - String
-  #    #MaximumBatchingWindowInSeconds: Integer
-  #    #MaximumRecordAgeInSeconds: Integer
-  #    #MaximumRetryAttempts: Integer
-  #    #ParallelizationFactor: Integer
-  #    #Queues: 
-  #    #  - String
-  #    #SelfManagedEventSource: 
-  #    #  SelfManagedEventSource
-  #    #SelfManagedKafkaEventSourceConfig: 
-  #    #  SelfManagedKafkaEventSourceConfig
-  #    #SourceAccessConfigurations: 
-  #    #  - SourceAccessConfiguration
-  #    StartingPosition: LATEST
-  #    #StartingPositionTimestamp: Double
-  #    #Topics: 
-  #    #  - String
-  #    #TumblingWindowInSeconds: Integer
