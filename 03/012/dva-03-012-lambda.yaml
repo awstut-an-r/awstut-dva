@@ -1,0 +1,441 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Architecture:
+    Type: String
+    
+  #BatchSize:
+  #  Type: Number
+    
+  Handler:
+    Type: String
+    
+  HtmlBucket:
+    Type: String
+    
+  ImageBucket1:
+    Type: String
+    
+  ImageBucket2:
+    Type: String
+    
+  ImageUrl:
+    Type: String
+    
+  #KinesisDataStreamArn:
+  #  Type: String
+  #  
+  #KinesisDataStreamName:
+  #  Type: String
+  #  
+  #KinesisFirehoseDeliveryStreamName:
+  #  Type: String
+
+  Prefix:
+    Type: String
+    
+  Runtime:
+    Type: String
+    
+  #Timeout:
+  #  Type: Number
+    
+
+Resources:
+  ImageBucketCustomResource1:
+    Type: Custom::CustomResource
+    Properties:
+      BucketName: !Ref ImageBucket1
+      ImageUrl: !Ref ImageUrl
+      #ServiceToken: !GetAtt Function.Arn
+      ServiceToken: !GetAtt PutImageFunction.Arn
+      
+  ImageBucketCustomResource2:
+    Type: Custom::CustomResource
+    Properties:
+      BucketName: !Ref ImageBucket2
+      ImageUrl: !Ref ImageUrl
+      #ServiceToken: !GetAtt Function.Arn
+      ServiceToken: !GetAtt PutImageFunction.Arn
+  
+  PutImageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import urllib.request
+          
+          s3_client = boto3.client('s3')
+          content_type = 'image/svg+xml'
+          
+          CREATE = 'Create'
+          DELETE = 'Delete'
+          response_data = {}
+          
+          def lambda_handler(event, context):
+            try:
+              s3_bucket = event['ResourceProperties']['BucketName']
+              image_url = event['ResourceProperties']['ImageUrl']
+              s3_key = image_url.split('/')[-1]
+              
+              if event['RequestType'] == CREATE:
+                #print(s3_bucket)
+                #print(image_url)
+                #print(s3_key)
+                
+                response = urllib.request.urlopen(image_url)
+                image_data = response.read()
+                
+                #response = s3_client.put_object(Bucket=s3_bucket, Key=s3_key, Body=image_data)
+                response = s3_client.put_object(
+                  Bucket=s3_bucket,
+                  Key=s3_key,
+                  Body=image_data,
+                  ContentType=content_type
+                  )
+                print(response)
+              
+              elif event['RequestType'] == DELETE:
+                list_response = s3_client.list_objects_v2(Bucket=s3_bucket)
+                if 'Contents' in list_response and list_response['Contents']:
+                  for obj in list_response['Contents']:
+                    delete_response = s3_client.delete_object(
+                      Bucket=s3_bucket,
+                      Key=obj['Key'])
+                    print(delete_response)
+              
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+              
+            except Exception as e:
+              print(e)
+              cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
+      #Environment:
+      #  Variables:
+      #    KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+      #    #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+      FunctionName: !Sub "${Prefix}-put-image-function"
+      Handler: !Ref Handler
+      Role: !GetAtt PutImageFunctionRole.Arn
+      Runtime: !Ref Runtime
+      #Timeout: !Ref Timeout
+
+  PutImageFunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      #  #- arn:aws:iam::aws:policy/AmazonKinesisFullAccess
+      #  - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      #  #- arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+      Policies:
+        - PolicyName: PutImageFunctionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${ImageBucket1}"
+                  - !Sub "arn:aws:s3:::${ImageBucket1}/*"
+                  - !Sub "arn:aws:s3:::${ImageBucket2}"
+                  - !Sub "arn:aws:s3:::${ImageBucket2}/*"
+                  
+  PutHtmlCustomResource:
+    Type: Custom::CustomResource
+    Properties:
+      HtmlBucketName: !Ref HtmlBucket
+      ImageBucketName1: !Ref ImageBucket1
+      ImageBucketName2: !Ref ImageBucket2
+      ImageUrl: !Ref ImageUrl
+      #ServiceToken: !GetAtt Function.Arn
+      ServiceToken: !GetAtt PutHtmlFunction.Arn
+                  
+  PutHtmlFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Architectures:
+        - !Ref Architecture
+      Code:
+        # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          from string import Template
+          
+          object_name = 'index.html'
+          object_body = Template("""<html>
+            <head></head>
+            <body>
+              <h1>index.html</h1>
+              <h2>$html_bucket</h2>
+              
+              <!--
+              <img src="https://$image_bucket1.s3.amazonaws.com/$image_name" />
+              <img src="https://$image_bucket2.s3.amazonaws.com/$image_name" />
+              <img src="https://$image_bucket1.s3.ap-northeast-1.amazonaws.com/$image_name" />
+              <img src="https://$image_bucket2.s3.ap-northeast-1.amazonaws.com/$image_name" />
+              -->
+              
+              <h3>$image_bucket1</h3>
+              <div id="svg-container1"></div>
+              
+              <h3>$image_bucket2</h3>
+              <div id="svg-container2"></div>
+              
+              <script>
+                const svgContainer1 = document.getElementById('svg-container1');
+                fetch('https://$image_bucket1.s3.amazonaws.com/$image_name')
+                  .then(response => response.text())
+                  .then(svgContent => {
+                    svgContainer1.innerHTML = svgContent;
+                  })
+                  .catch(error => {
+                    //console.error('Error occur during loading svg.', error);
+                    const errorMessage = document.createElement('p');
+                    errorMessage.textContent = 'Error occur during loading svg from $image_bucket1.';
+                    svgContainer1.appendChild(errorMessage);
+                  });
+                  
+                const svgContainer2 = document.getElementById('svg-container2');
+                fetch('https://$image_bucket2.s3.amazonaws.com/$image_name')
+                  .then(response => response.text())
+                  .then(svgContent => {
+                    svgContainer2.innerHTML = svgContent;
+                  })
+                  .catch(error => {
+                    //console.error('Error occur during loading svg.', error);
+                    const errorMessage = document.createElement('p');
+                    errorMessage.textContent = 'Error occur during loading svg from $image_bucket2.';
+                    svgContainer1.appendChild(errorMessage);
+                  });
+              </script>
+            </body>
+          </html>""")
+          content_type = 'text/html'
+          char_code= 'utf-8'
+          
+          s3_client = boto3.client('s3')
+          
+          CREATE = 'Create'
+          DELETE = 'Delete'
+          response_data = {}
+          
+          def lambda_handler(event, context):
+            #print('hogehogehoge')
+          
+            try:
+              s3_html_bucket = event['ResourceProperties']['HtmlBucketName']
+              s3_image_bucket1 = event['ResourceProperties']['ImageBucketName1']
+              s3_image_bucket2 = event['ResourceProperties']['ImageBucketName2']
+              image_url = event['ResourceProperties']['ImageUrl']
+              s3_key = image_url.split('/')[-1]
+              
+              if event['RequestType'] == CREATE:
+                print(s3_html_bucket)
+                print(s3_image_bucket1)
+                print(s3_image_bucket2)
+                print(image_url)
+                print(s3_key)
+                
+                #body = object_body.format(
+                #  html_bucket=s3_html_bucket,
+                #  image_bucket1=s3_image_bucket1,
+                #  image_bucket2=s3_image_bucket2,
+                #  image_name=s3_key
+                #)
+                body = object_body.substitute(
+                  html_bucket=s3_html_bucket,
+                  image_bucket1=s3_image_bucket1,
+                  image_bucket2=s3_image_bucket2,
+                  image_name=s3_key
+                  )
+                print(body)
+                
+                put_response = s3_client.put_object(
+                  Bucket=s3_html_bucket,
+                  Key=object_name,
+                  Body=body.encode(char_code),
+                  ContentEncoding=char_code,
+                  ContentType=content_type)
+                print(put_response)
+              
+              elif event['RequestType'] == DELETE:
+                list_response = s3_client.list_objects_v2(Bucket=s3_html_bucket)
+                print(list_response)
+                if 'Contents' in list_response and list_response['Contents']:
+                  for obj in list_response['Contents']:
+                    delete_response = s3_client.delete_object(
+                      Bucket=s3_html_bucket,
+                      Key=obj['Key'])
+                    print(delete_response)
+              
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+              
+            except Exception as e:
+              print(e)
+              cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
+      #Environment:
+      #  Variables:
+      #    KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+      #    #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+      FunctionName: !Sub "${Prefix}-put-html-function"
+      Handler: !Ref Handler
+      Role: !GetAtt PutHtmlFunctionRole.Arn
+      Runtime: !Ref Runtime
+      
+  PutHtmlFunctionRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: PutHtmlFunctionPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${HtmlBucket}"
+                  - !Sub "arn:aws:s3:::${HtmlBucket}/*"
+      
+  #Function2:
+  #  Type: AWS::Lambda::Function
+  #  Properties:
+  #    Architectures:
+  #      - !Ref Architecture
+  #    Code:
+  #      # https://docs.aws.amazon.com/ja_jp/streams/latest/dev/get-started-exercise.html
+  #      ZipFile: |
+  #        import base64
+  #        import boto3
+  #        import datetime
+  #        import json
+  #        import os
+  #        
+  #        firehose_delivery_stream = os.environ['KINESIS_FIREHOSE_DELIVERY_STREAM_NAME']
+  #        
+  #        firehose_client = boto3.client('firehose')
+  #        
+  #        def lambda_handler(event, context):
+  #          print(event)
+  #          
+  #          for record in event['Records']:
+  #            record_data = json.loads(base64.b64decode(record['kinesis']['data']).decode('utf-8'))
+  #            #print(record_data)
+  #            
+  #            event_time = record_data['EVENT_TIME']
+  #            record_data['UNIX_TIME'] = datetime.datetime.fromisoformat(event_time).timestamp()
+  #            #print(json.dumps(record_data))
+  #            
+  #            response = firehose_client.put_record(
+  #              DeliveryStreamName=firehose_delivery_stream,
+  #              Record={
+  #                  #'Data': b'bytes'
+  #                  'Data': (json.dumps(record_data) + '\n').encode()
+  #              }
+  #            )
+  #            print(response)
+  #    Environment:
+  #      Variables:
+  #        KINESIS_FIREHOSE_DELIVERY_STREAM_NAME: !Ref KinesisFirehoseDeliveryStreamName
+  #        #KINESIS_STREAM_NAME: !Ref KinesisDataStreamName
+  #        #  Fn::ImportValue: !Sub ${Prefix}-DataStream
+  #    FunctionName: !Sub "${Prefix}-function-02"
+  #    Handler: !Ref Handler
+  #    Role: !GetAtt FunctionRole2.Arn
+  #    Runtime: !Ref Runtime
+  #    Timeout: !Ref Timeout
+  #    
+  #FunctionRole2:
+  #  Type: AWS::IAM::Role
+  #  DeletionPolicy: Delete
+  #  Properties:
+  #    AssumeRolePolicyDocument:
+  #      Version: "2012-10-17"
+  #      Statement:
+  #        - Effect: Allow
+  #          Action: sts:AssumeRole
+  #          Principal:
+  #            Service:
+  #              - lambda.amazonaws.com
+  #    ManagedPolicyArns:
+  #      #- arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  #      - arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+  #    Policies:
+  #      - PolicyName: FunctionRolePolicy2
+  #        PolicyDocument:
+  #          Version: 2012-10-17
+  #          Statement:
+  #            - Effect: Allow
+  #              Action:
+  #                #- kinesis:PutRecord
+  #                - firehose:PutRecord
+  #              Resource:
+  #                #- !Ref KinesisDataStreamArn
+  #                - !Sub "arn:aws:firehose:${AWS::Region}:${AWS::AccountId}:deliverystream/${KinesisFirehoseDeliveryStreamName}"
+  #      
+  #EventSourceMapping:
+  #  Type: AWS::Lambda::EventSourceMapping
+  #  Properties: 
+  #    #AmazonManagedKafkaEventSourceConfig: 
+  #    #  AmazonManagedKafkaEventSourceConfig
+  #    BatchSize: !Ref BatchSize
+  #    #BisectBatchOnFunctionError: Boolean
+  #    #DestinationConfig: 
+  #    #  DestinationConfig
+  #    Enabled: true
+  #    EventSourceArn: !Ref KinesisDataStreamArn
+  #    #FilterCriteria: 
+  #    #  FilterCriteria
+  #    FunctionName: !Ref Function2
+  #    #FunctionResponseTypes: 
+  #    #  - String
+  #    #MaximumBatchingWindowInSeconds: Integer
+  #    #MaximumRecordAgeInSeconds: Integer
+  #    #MaximumRetryAttempts: Integer
+  #    #ParallelizationFactor: Integer
+  #    #Queues: 
+  #    #  - String
+  #    #SelfManagedEventSource: 
+  #    #  SelfManagedEventSource
+  #    #SelfManagedKafkaEventSourceConfig: 
+  #    #  SelfManagedKafkaEventSourceConfig
+  #    #SourceAccessConfigurations: 
+  #    #  - SourceAccessConfiguration
+  #    StartingPosition: LATEST
+  #    #StartingPositionTimestamp: Double
+  #    #Topics: 
+  #    #  - String
+  #    #TumblingWindowInSeconds: Integer

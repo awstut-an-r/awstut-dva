@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  TemplateBucketName:
+    Type: String
+    Default: awstut-bucket
+    
+  Prefix:
+    Type: String
+    Default: dva-03-012
+    
+  #BatchSize:
+  #  Type: Number
+  #  Default: 1
+    
+  #KinesisNamePrefix:
+  #  Type: String
+  #  Default: SAMPLE_APP
+    
+  #KinesisShardCount:
+  #  Type: Number
+  #  Default: 1
+  
+  ImageUrl:
+    Type: String
+    Default: https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg
+    
+  LambdaArchitecture:
+    Type: String
+    Default: arm64
+    
+  LambdaHandler:
+    Type: String
+    Default: index.lambda_handler
+    
+  LambdaRuntime:
+    Type: String
+    Default: python3.12
+    
+  #LambdaTimeout:
+  #  Type: Number
+  #  Default: 60
+
+
+Resources:
+  S3Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-s3.yaml"
+      Parameters:
+        Prefix: !Ref Prefix
+        
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - S3Stack
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucketName}.s3.${AWS::Region}.amazonaws.com/${Prefix}/${Prefix}-lambda.yaml"
+      Parameters:
+        Architecture: !Ref LambdaArchitecture
+        #BatchSize: !Ref BatchSize
+        Handler: !Ref LambdaHandler
+        HtmlBucket: !GetAtt S3Stack.Outputs.HtmlBucket
+        ImageBucket1: !GetAtt S3Stack.Outputs.ImageBucket1
+        ImageBucket2: !GetAtt S3Stack.Outputs.ImageBucket2
+        ImageUrl: !Ref ImageUrl
+        #KinesisDataStreamArn: !GetAtt KinesisStack.Outputs.KinesisDataStreamArn
+        #KinesisDataStreamName: !GetAtt KinesisStack.Outputs.KinesisDataStreamName
+        #KinesisFirehoseDeliveryStreamName: !GetAtt KinesisStack.Outputs.KinesisFirehoseDeliveryStreamName
+        Prefix: !Ref Prefix
+        Runtime: !Ref LambdaRuntime
+        #Timeout: !Ref LambdaTimeout

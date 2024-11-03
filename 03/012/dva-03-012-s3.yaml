@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Prefix:
+    Type: String
+    
+
+Resources:
+  ImageBucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      #AccessControl: PublicRead
+      #AccessControl: Private
+      BucketName: !Sub "${Prefix}-image-bucket-01"
+      #CorsConfiguration: 
+      #  CorsRules: 
+      #    - #AllowedHeaders: 
+      #      #  - "*"
+      #      AllowedMethods: 
+      #        - GET
+      #      AllowedOrigins: 
+      #        - "*"
+      #      #ExposedHeaders: 
+      #      #  - 
+      #      Id: rule-01
+      #      #MaxAge: Integer
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      
+  ImageBucketPolicy1:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ImageBucket1
+      PolicyDocument:
+        Statement:
+          Action:
+            - s3:GetObject
+          Effect: Allow
+          Principal: "*"
+          Resource:
+            - !Sub "arn:aws:s3:::${ImageBucket1}/*"
+      
+  ImageBucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      #AccessControl: PublicRead
+      #AccessControl: Private
+      BucketName: !Sub "${Prefix}-image-bucket-02"
+      CorsConfiguration: 
+        CorsRules: 
+          - #AllowedHeaders: 
+            #  - "*"
+            AllowedMethods: 
+              - GET
+            AllowedOrigins: 
+              - "*"
+            #ExposedHeaders: 
+            #  - 
+            Id: rule-01
+            #MaxAge: Integer
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+            
+  ImageBucketPolicy2:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ImageBucket2
+      PolicyDocument:
+        Statement:
+          Action:
+            - s3:GetObject
+          Effect: Allow
+          Principal: "*"
+          Resource:
+            - !Sub "arn:aws:s3:::${ImageBucket2}/*"
+
+  HtmlBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      #AccessControl: PublicRead
+      #AccessControl: Private
+      BucketName: !Sub "${Prefix}-html-bucket"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      
+  HtmlBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref HtmlBucket
+      PolicyDocument:
+        Statement:
+          Action:
+            - s3:GetObject
+          Effect: Allow
+          Principal: "*"
+          Resource:
+            - !Sub "arn:aws:s3:::${HtmlBucket}/*"
+      
+
+Outputs:
+  #BucketName:
+  #  Value: !Ref Bucket
+  
+  ImageBucket1:
+    Value: !Ref ImageBucket1
+    
+  ImageBucket2:
+    Value: !Ref ImageBucket2
+    
+  HtmlBucket:
+    Value: !Ref HtmlBucket
+  
+  #ImageBucket1Arn:
+  #  Value: !GetAtt ImageBucket1.Arn
+  #  
+  #ImageBucket2Arn:
+  #  Value: !GetAtt ImageBucket2.Arn
+  #
+  #HtmlBucketArn:
+  #  Value: !GetAtt HtmlBucket.Arn
