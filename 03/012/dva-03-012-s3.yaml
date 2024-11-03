@@ -9,21 +9,7 @@ Resources:
   ImageBucket1:
     Type: AWS::S3::Bucket
     Properties:
-      #AccessControl: PublicRead
-      #AccessControl: Private
       BucketName: !Sub "${Prefix}-image-bucket-01"
-      #CorsConfiguration: 
-      #  CorsRules: 
-      #    - #AllowedHeaders: 
-      #      #  - "*"
-      #      AllowedMethods: 
-      #        - GET
-      #      AllowedOrigins: 
-      #        - "*"
-      #      #ExposedHeaders: 
-      #      #  - 
-      #      Id: rule-01
-      #      #MaxAge: Integer
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -46,21 +32,14 @@ Resources:
   ImageBucket2:
     Type: AWS::S3::Bucket
     Properties:
-      #AccessControl: PublicRead
-      #AccessControl: Private
       BucketName: !Sub "${Prefix}-image-bucket-02"
       CorsConfiguration: 
         CorsRules: 
-          - #AllowedHeaders: 
-            #  - "*"
-            AllowedMethods: 
+          - AllowedMethods: 
               - GET
             AllowedOrigins: 
               - "*"
-            #ExposedHeaders: 
-            #  - 
             Id: rule-01
-            #MaxAge: Integer
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -83,8 +62,6 @@ Resources:
   HtmlBucket:
     Type: AWS::S3::Bucket
     Properties:
-      #AccessControl: PublicRead
-      #AccessControl: Private
       BucketName: !Sub "${Prefix}-html-bucket"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
@@ -109,9 +86,6 @@ Resources:
       
 
 Outputs:
-  #BucketName:
-  #  Value: !Ref Bucket
-  
   ImageBucket1:
     Value: !Ref ImageBucket1
     
@@ -120,12 +94,3 @@ Outputs:
     
   HtmlBucket:
     Value: !Ref HtmlBucket
-  
-  #ImageBucket1Arn:
-  #  Value: !GetAtt ImageBucket1.Arn
-  #  
-  #ImageBucket2Arn:
-  #  Value: !GetAtt ImageBucket2.Arn
-  #
-  #HtmlBucketArn:
-  #  Value: !GetAtt HtmlBucket.Arn
